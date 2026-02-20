@@ -1,0 +1,25 @@
+.info-view { padding: 10px 0; }
+
+.content-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    min-height: 70vh;
+}
+
+.page-title { font-size: 32px; font-weight: 900; color: #111; margin: 0; }
+.last-updated { font-size: 12px; color: #999; margin-top: 5px; font-weight: 600; }
+.divider { margin: 30px 0; border: none; border-top: 1px solid #f0f0f0; }
+
+/* Styles for the rendered HTML from Admin */
+.html-render { line-height: 1.8; color: #444; font-size: 16px; }
+.html-render h1, .html-render h2 { color: #0CA201; margin-top: 25px; }
+.html-render p { margin-bottom: 15px; }
+
+.loader { text-align: center; padding: 100px; font-size: 40px; color: #0CA201; }
+.spin { display: inline-block; animation: rotate 1s infinite linear; }
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.animate-fade { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

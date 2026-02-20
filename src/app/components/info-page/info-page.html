@@ -1,0 +1,13 @@
+<div class="info-view animate-fade">
+  <div *ngIf="isLoading" class="loader"><i class="bi bi-arrow-repeat spin"></i></div>
+
+  <div *ngIf="!isLoading && pageData" class="content-card">
+    <h1 class="page-title">{{ pageData.title }}</h1>
+    <div class="last-updated">Last Updated: {{ pageData.updated_at | date:'longDate' }}</div>
+    
+    <hr class="divider">
+
+    <!-- This renders the HTML content from Admin -->
+    <div class="html-render" [innerHTML]="pageData.content"></div>
+  </div>
+</div>

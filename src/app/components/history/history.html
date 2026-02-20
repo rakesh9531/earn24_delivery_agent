@@ -1,0 +1,85 @@
+<div class="history-container">
+  <!-- Page Header -->
+  <div class="history-header">
+    <div class="header-left">
+      <h1>Delivery History</h1>
+      <p class="subtitle">Complete record of your performance</p>
+    </div>
+    <div class="total-badge">
+        <i class="bi bi-layers-half"></i>
+        <span>{{ totalItems }} Total</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loader-state">
+    <div class="custom-spinner"></div>
+    <p>Retrieving your records...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && history.length === 0" class="empty-state">
+    <div class="empty-icon-box"><i class="bi bi-clipboard-x"></i></div>
+    <h3>No Records Found</h3>
+    <p>When you complete deliveries, they will appear here.</p>
+    <button routerLink="/dashboard" class="btn-go-back">Return to Dashboard</button>
+  </div>
+
+  <!-- History List Cards -->
+  <div class="history-list" *ngIf="!isLoading && history.length > 0">
+    <div *ngFor="let item of history" class="history-card" [ngClass]="item.order_status">
+      
+      <!-- Side Status Strip -->
+      <div class="status-strip"></div>
+
+      <div class="card-content">
+        <div class="card-row-top">
+          <span class="order-number">#{{ item.order_number }}</span>
+          <span class="date-time">
+            <i class="bi bi-clock"></i> {{ item.delivered_at | date:'dd MMM, hh:mm a' }}
+          </span>
+        </div>
+
+        <div class="card-row-mid">
+          <div class="customer-info">
+            <h3>{{ item.customer_name }}</h3>
+            <span class="payment-tag">
+                <i class="bi bi-cash-stack"></i> {{ item.payment_method }}
+            </span>
+          </div>
+          
+          <div class="amount-display">
+            <small>Net Amount</small>
+            <strong>₹{{ item.total_amount }}</strong>
+          </div>
+        </div>
+
+        <div class="card-row-bottom">
+            <div class="status-pill">
+                <i class="bi bi-patch-check-fill" *ngIf="item.order_status === 'DELIVERED'"></i>
+                <i class="bi bi-x-octagon-fill" *ngIf="item.order_status !== 'DELIVERED'"></i>
+                {{ item.order_status }}
+            </div>
+            <div class="verified-label">
+                <i class="bi bi-shield-lock"></i> OTP Verified
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination Bar -->
+  <div class="pagination-bar" *ngIf="!isLoading && totalPages > 1">
+    <button (click)="prevPage()" [disabled]="currentPage === 1" class="nav-btn">
+      <i class="bi bi-arrow-left-short"></i> Prev
+    </button>
+    
+    <div class="page-numbers">
+      Page <strong>{{ currentPage }}</strong> of {{ totalPages }}
+    </div>
+
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="nav-btn">
+      Next <i class="bi bi-arrow-right-short"></i>
+    </button>
+  </div>
+</div>

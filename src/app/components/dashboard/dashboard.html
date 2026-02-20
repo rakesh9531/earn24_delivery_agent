@@ -1,0 +1,154 @@
+<div class="dashboard-wrapper">
+  
+  <!-- 1. TOP STATISTICS CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card tasks">
+      <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+      <div class="stat-info">
+        <small>Total Tasks</small>
+        <h3>{{ tasks.length }}</h3>
+      </div>
+    </div>
+    <div class="stat-card done">
+      <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+      <div class="stat-info">
+        <small>Delivered</small>
+        <h3>{{ stats.delivered_count || 0 }}</h3>
+      </div>
+    </div>
+    <div class="stat-card cash">
+      <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+      <div class="stat-info">
+        <small>Cash Hand</small>
+        <h3>₹{{ stats.cash_collected || 0 | number:'1.0-0' }}</h3>
+      </div>
+    </div>
+    <div class="stat-card online">
+      <div class="stat-icon"><i class="bi bi-qr-code"></i></div>
+      <div class="stat-info">
+        <small>Online Total</small>
+        <h3>₹{{ stats.online_collected || 0 | number:'1.0-0' }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider">
+    <span>Active Deliveries</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- 2. ORDERS LIST -->
+  <div class="orders-container">
+    <div *ngFor="let order of tasks" class="order-card shadow-sm">
+      
+      <!-- Card Header: ID & Badge -->
+      <div class="card-header">
+        <div class="order-identity">
+          <span class="id-tag">ORDER #{{ order.order_number }}</span>
+        </div>
+        <span class="status-badge" [ngClass]="order.order_status">{{ order.order_status }}</span>
+      </div>
+
+      <!-- Card Body: Customer & Pickup -->
+      <div class="card-body">
+        <div class="customer-row">
+            <h2 class="customer-name">{{ order.customer_name }}</h2>
+            <a [href]="'tel:' + order.customer_phone" class="btn-call">
+                <i class="bi bi-telephone-fill"></i> CALL CUSTOMER
+            </a>
+        </div>
+        <p class="customer-address">
+            <i class="bi bi-geo-alt-fill"></i> {{ order.address_line_1 }}, {{ order.city }}
+        </p>
+
+        <!-- DETAILED PICKUP CHECKLIST -->
+        <div class="pickup-section">
+            <div class="pickup-header">
+                <i class="bi bi-bag-check-fill"></i> 
+                <span>PICKUP ITEMS</span>
+                <small>{{ order.items?.length }} ITEMS</small>
+            </div>
+
+            <div class="item-list">
+                <div *ngFor="let item of order.items" class="pickup-item-row">
+                    <!-- Thumbnail -->
+                    <div class="item-thumb">
+                        <img [src]="'https://newapi.earn24.in' + item.main_image_url" 
+                             onerror="this.src='https://placehold.co/100x100?text=Product'">
+                    </div>
+
+                    <!-- Details -->
+                    <div class="item-info">
+                        <span class="item-brand">{{ item.brand_name || 'Generic' }}</span>
+                        <h4 class="item-name">{{ item.product_name }}</h4>
+                        
+                        <!-- Snapshot Attributes (Weight, Size, etc) -->
+                        <div class="item-attrs" *ngIf="item.attributes">
+                            <span *ngFor="let attr of item.attributes | keyvalue" class="attr-pill">
+                                {{ attr.key }}: <strong>{{ attr.value }}</strong>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="item-qty-box">
+                        <small>QTY</small>
+                        <span>{{ item.quantity }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- 3. ACTION FOOTER (MULTI-STEP FLOW) -->
+      <div class="card-footer">
+        
+        <!-- STEP 1: START TRIP (Visible for Shipped/Confirmed) -->
+        <div class="footer-action-row" *ngIf="order.order_status !== 'OUT_FOR_DELIVERY'">
+            <div class="amount-group">
+                <small>Total Collectable</small>
+                <strong>₹{{ order.total_amount }}</strong>
+            </div>
+            <div class="button-group">
+                <button (click)="cancelOrder(order)" class="btn-cancel">REJECT</button>
+                <button (click)="startOrder(order)" class="btn-start-trip">START TRIP</button>
+            </div>
+        </div>
+
+        <!-- STEP 2: REACHED LOCATION (Visible when Out for Delivery) -->
+        <div class="arrived-row" *ngIf="order.order_status === 'OUT_FOR_DELIVERY' && !order.isOtpRequested">
+            <button (click)="sendOTP(order)" class="btn-reached-otp">
+                <i class="bi bi-geo-fill"></i> REACHED CUSTOMER? SEND OTP
+            </button>
+        </div>
+
+        <!-- STEP 3: OTP VERIFICATION (Visible after sending OTP) -->
+        <div *ngIf="order.isOtpRequested && !order.isOtpVerified" class="verification-panel">
+            <div class="handshake-header"><i class="bi bi-shield-lock"></i> VERIFICATION STEP</div>
+            <label class="input-label">Enter 6-Digit OTP from Customer</label>
+            <input type="text" [(ngModel)]="order.inputOtp" maxlength="6" class="otp-input-box" placeholder="000000">
+            <button (click)="onVerifyOtp(order)" class="btn-verify-only">VERIFY OTP</button>
+        </div>
+
+        <!-- STEP 4: FINAL PAYMENT & SUCCESS (Visible after OTP verified) -->
+        <div *ngIf="order.isOtpVerified" class="payment-completion-panel">
+            <div class="verified-tag"><i class="bi bi-patch-check-fill"></i> HANDSHAKE SUCCESSFUL</div>
+            <label class="input-label">SELECT PAYMENT MODE RECEIVED:</label>
+            <div class="payment-mode-toggle">
+                <button [class.active]="order.finalMode === 'COD'" (click)="order.finalMode = 'COD'">CASH (COD)</button>
+                <button [class.active]="order.finalMode === 'ONLINE'" (click)="order.finalMode = 'ONLINE'">ONLINE / QR</button>
+            </div>
+            <button (click)="onComplete(order)" class="btn-complete-order">COMPLETE DELIVERY</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading / Empty State -->
+  <div *ngIf="isLoading" class="loader-ui"><div class="spinner"></div><p>Fetching latest tasks...</p></div>
+  <div *ngIf="!isLoading && tasks.length === 0" class="empty-ui">
+      <i class="bi bi-emoji-smile"></i>
+      <p>You have no pending assignments!</p>
+  </div>
+</div>

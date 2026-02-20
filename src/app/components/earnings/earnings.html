@@ -1,0 +1,68 @@
+<div class="earnings-page">
+  <div class="header-section">
+    <h1>Financial Overview</h1>
+    <p>Track your collections and performance</p>
+  </div>
+
+  <!-- Life-time & Monthly Grid -->
+  <div class="summary-grid">
+    <div class="main-card primary-card">
+        <small>UNSETTLED CASH HAND</small>
+        <h2>₹{{ summary.lifetime.total_cash_lifetime || 0 | number:'1.0-0' }}</h2>
+        <div class="card-tag">LIFETIME CASH</div>
+    </div>
+
+    <div class="mini-stats">
+        <div class="mini-card online">
+            <i class="bi bi-qr-code"></i>
+            <div>
+                <small>Online Lifetime</small>
+                <strong>₹{{ summary.lifetime.total_online_lifetime || 0 | number:'1.0-0' }}</strong>
+            </div>
+        </div>
+        <div class="mini-card active-month">
+            <i class="bi bi-calendar-check"></i>
+            <div>
+                <small>This Month ({{ summary.thisMonth.count || 0 }})</small>
+                <strong>₹{{ summary.thisMonth.amount || 0 | number:'1.0-0' }}</strong>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="list-title">
+      <span>Daily Transaction Log</span>
+      <div class="line"></div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loader-ui"><div class="spin"></div></div>
+
+  <!-- Daily List -->
+  <div class="log-list" *ngIf="!isLoading">
+    <div *ngFor="let day of dailyStats" class="log-item">
+      <div class="log-date">
+        <span class="m">{{ day.date | date:'MMM' }}</span>
+        <span class="d">{{ day.date | date:'dd' }}</span>
+      </div>
+      
+      <div class="log-content">
+        <div class="log-top">
+            <strong>{{ day.total_deliveries }} Successful Trips</strong>
+            <span class="day-full">{{ day.date | date:'EEEE' }}</span>
+        </div>
+        <div class="log-bottom">
+            <div class="val cash"><i class="bi bi-wallet2"></i> Cash: ₹{{ day.cash_collected }}</div>
+            <div class="val online"><i class="bi bi-phone"></i> Online: ₹{{ day.online_collected }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+        <button (click)="prevPage()" [disabled]="currentPage === 1"><i class="bi bi-arrow-left"></i></button>
+        <span>Page {{ currentPage }} / {{ totalPages }}</span>
+        <button (click)="nextPage()" [disabled]="currentPage === totalPages"><i class="bi bi-arrow-right"></i></button>
+    </div>
+  </div>
+</div>

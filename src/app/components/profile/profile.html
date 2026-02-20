@@ -1,0 +1,68 @@
+<div class="profile-container">
+  <!-- 1. Profile Header Card -->
+  <div class="profile-hero shadow-sm">
+    <div class="avatar-wrapper">
+        <div class="large-avatar">{{ agentName.charAt(0) }}</div>
+        <div class="online-indicator"></div>
+    </div>
+    <h1 class="agent-display-name">{{ agentName }}</h1>
+    <span class="role-badge">OFFICIAL DELIVERY PARTNER</span>
+  </div>
+
+  <!-- 2. Personal Information Section -->
+  <div class="section-card shadow-sm">
+    <div class="card-title">
+        <i class="bi bi-person-lines-fill"></i>
+        <span>Account Information</span>
+    </div>
+
+    <div class="info-row">
+        <div class="icon-circle"><i class="bi bi-hash"></i></div>
+        <div class="info-content">
+            <small>Agent ID</small>
+            <p>{{ agentID }}</p>
+        </div>
+    </div>
+
+    <div class="info-row">
+        <div class="icon-circle"><i class="bi bi-phone"></i></div>
+        <div class="info-content">
+            <small>Primary Mobile</small>
+            <p>{{ agentPhone }}</p>
+        </div>
+        <button class="btn-copy"><i class="bi bi-check2"></i> Verified</button>
+    </div>
+
+    <div class="info-row">
+        <div class="icon-circle"><i class="bi bi-shield-check"></i></div>
+        <div class="info-content">
+            <small>Account Status</small>
+            <p class="status-active">ACTIVE</p>
+        </div>
+    </div>
+  </div>
+
+  <!-- 3. System Section -->
+  <div class="section-card shadow-sm">
+      <div class="card-title">
+          <i class="bi bi-gear-fill"></i>
+          <span>Support & System</span>
+      </div>
+      <div class="list-item">
+          <span>App Version</span>
+          <span class="v-text">v2.0.4 (Stable)</span>
+      </div>
+      <div class="list-item">
+          <span>Support Hotline</span>
+          <span class="link-text">Call Helpdesk</span>
+      </div>
+  </div>
+
+  <!-- 4. Logout Action -->
+  <button class="logout-full-btn" (click)="logout()">
+      <i class="bi bi-box-arrow-right"></i>
+      LOGOUT SESSION
+  </button>
+
+  <p class="copyright-text">© 2024 EARN24 Logistics Platform</p>
+</div>
