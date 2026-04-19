@@ -58,7 +58,8 @@
             </a>
         </div>
         <p class="customer-address">
-            <i class="bi bi-geo-alt-fill"></i> {{ order.address_line_1 }}, {{ order.city }}
+            <i class="bi bi-geo-alt-fill"></i> 
+            {{ order.address_line_1 }}<span *ngIf="order.address_line_2">, {{ order.address_line_2 }}</span><span *ngIf="order.landmark">, Near {{ order.landmark }}</span>, {{ order.city }}, {{ order.state }} - {{ order.pincode }}
         </p>
 
         <!-- DETAILED PICKUP CHECKLIST -->
