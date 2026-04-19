@@ -114,17 +114,18 @@
 /* PHASE 3: VERIFICATION */
 .verification-panel { padding: 15px; background: green; border-radius: 20px; border: 2.5px dashed #f9f9f9; }
 .handshake-header { font-weight: 900; color: #f4f4f4; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; }
-.input-label { display: block; font-size: 12px; font-weight: 800; color: #ffffff; margin-bottom: 10px; }
+.input-label { display: block; font-size: 13px; font-weight: 800; color: #000000 !important; margin-bottom: 10px; opacity: 1 !important; }
 .otp-input-box { width: 100%; padding: 15px; font-size: 36px; text-align: center; letter-spacing: 18px; border-radius: 15px; border: 2px solid #ddd; font-weight: 900; color: var(--dark-blue); margin-bottom: 15px; }
 .btn-verify-only { width: 100%; padding: 18px; background: rgb(0, 170, 255); color: #fff; border: none; border-radius: 15px; font-weight: 900; font-size: 16px; }
 
 /* PHASE 4: FINAL COMPLETION */
 .payment-completion-panel { padding: 25px; background: #f0fdf4; border: 2px solid var(--primary-green); border-radius: 20px; animation: slideUp 0.3s ease; }
+.payment-completion-panel .input-label { color: #000000 !important; }
 .verified-tag { color: var(--primary-green); font-weight: 900; font-size: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
 
 .payment-mode-toggle { display: flex; gap: 10px; margin-bottom: 20px; }
-.payment-mode-toggle button { flex: 1; padding: 16px; border: 2px solid #d1d5db; background: #fff; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; }
-.payment-mode-toggle button.active { background: var(--primary-green); color: #fff; border-color: var(--primary-green); }
+.payment-mode-toggle button { flex: 1; padding: 18px; border: 1.5px solid #cbd5e1 !important; background: #ffffff !important; border-radius: 14px; font-weight: 800; font-size: 14px; color: #1e293b !important; cursor: pointer; transition: 0.2s; opacity: 1 !important; }
+.payment-mode-toggle button.active { background: #0CA201 !important; color: #ffffff !important; border-color: #0CA201 !important; box-shadow: 0 4px 12px rgba(12, 162, 1, 0.3) !important; }
 
 .btn-complete-order { width: 100%; padding: 20px; background: #000; color: #fff; border: none; border-radius: 18px; font-weight: 900; font-size: 17px; cursor: pointer; }
 
