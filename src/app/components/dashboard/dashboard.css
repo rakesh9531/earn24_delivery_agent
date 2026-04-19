@@ -92,9 +92,11 @@
 .attr-pill { font-size: 11px; color: var(--text-muted); background: #fff; padding: 3px 10px; border-radius: 6px; border: 1px solid #e5e7eb; }
 .attr-pill strong { color: var(--dark-blue); }
 
-.item-qty-box { text-align: center; background: var(--dark-blue); color: #fff; padding: 6px 14px; border-radius: 12px; }
-.item-qty-box small { font-size: 8px; font-weight: 900; display: block; opacity: 0.6; }
-.item-qty-box span { font-size: 18px; font-weight: 900; }
+.item-qty-box { text-align: center; background: #000000 !important; color: #ffffff !important; padding: 10px 18px; border-radius: 15px; border: 2px solid #333; }
+.item-qty-box small { font-size: 9px; font-weight: 900; display: block; color: #fbbf24; text-transform: uppercase; margin-bottom: 2px; }
+.item-qty-box span { font-size: 24px; font-weight: 900; }
+
+.qty-badge-inline { background: #fee2e2; color: #dc2626; padding: 2px 10px; border-radius: 8px; font-size: 15px; margin-left: 10px; font-weight: 900; border: 1px solid #fecaca; }
 
 /* 5. MULTI-PHASE FOOTER ACTIONS */
 .card-footer { margin-top: 30px; border-top: 2px solid #f1f5f9; padding-top: 25px; }

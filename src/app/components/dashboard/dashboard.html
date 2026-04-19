@@ -81,7 +81,7 @@
                     <!-- Details -->
                     <div class="item-info">
                         <span class="item-brand">{{ item.brand_name || 'Generic' }}</span>
-                        <h4 class="item-name">{{ item.product_name }}</h4>
+                        <h4 class="item-name">{{ item.product_name }} <span class="qty-badge-inline">x{{ item.quantity }}</span></h4>
                         
                         <!-- Snapshot Attributes (Weight, Size, etc) -->
                         <div class="item-attrs" *ngIf="item.attributes">
