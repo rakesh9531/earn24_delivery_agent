@@ -155,11 +155,13 @@
 
 
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { DeliveryService } from '../../services/delivery';
+import { SocketService } from '../../services/socket.service';
+import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -169,20 +171,48 @@ import Swal from 'sweetalert2';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, OnDestroy {
   // 1. Data Properties
   tasks: any[] = [];
   stats: any = { delivered_count: 0, cash_collected: 0, online_collected: 0 };
   isLoading = true;
   agentName = '';
   isSidebarOpen = false;
+  private socketSubscriptions: Subscription[] = [];
 
-  constructor(private deliveryService: DeliveryService, private router: Router) {}
+  constructor(
+    private deliveryService: DeliveryService, 
+    private router: Router,
+    private socketService: SocketService
+  ) {}
 
   ngOnInit(): void {
     const agentData = JSON.parse(localStorage.getItem('agent_data') || '{}');
     this.agentName = agentData.name || 'Agent';
     this.loadAllData();
+    this.setupSocketListeners();
+  }
+
+  setupSocketListeners() {
+    const orderAssignedSub = this.socketService.onEvent('order_assigned').subscribe({
+      next: (data) => {
+        console.log('Realtime socket event: order_assigned received', data);
+        Swal.fire({
+          icon: 'info',
+          title: 'New Order Assigned!',
+          text: data.message || 'You have been assigned a new delivery task.',
+          timer: 3500,
+          showConfirmButton: true
+        });
+        this.loadAllData();
+      }
+    });
+
+    this.socketSubscriptions.push(orderAssignedSub);
+  }
+
+  ngOnDestroy(): void {
+    this.socketSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
   // 2. Fetching Logic

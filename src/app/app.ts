@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterModule, Router, NavigationEnd } from '@angular/router';
 import { DeliveryService } from './services/delivery';
+import { SocketService } from './services/socket.service';
 import { filter } from 'rxjs';
 
 @Component({
@@ -17,13 +18,20 @@ export class AppComponent implements OnInit {
   agentID = '';
   showSidebar = false;
 
-  constructor(private deliveryService: DeliveryService, private router: Router) {
+  constructor(
+    private deliveryService: DeliveryService, 
+    private router: Router,
+    private socketService: SocketService
+  ) {
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((event: any) => {
       this.showSidebar = !event.url.includes('/login') && event.url !== '/';
       if (this.showSidebar) {
         const data = JSON.parse(localStorage.getItem('agent_data') || '{}');
         this.agentName = data.name || 'Agent';
         this.agentID = data.id ? `ID: AG-${data.id}` : '';
+        if (data.id) {
+          this.socketService.joinRoom(`agent_${data.id}`);
+        }
       }
     });
   }
