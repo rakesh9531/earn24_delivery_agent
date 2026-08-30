@@ -294,7 +294,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // PHASE 4: Payment and Final Completion
   onComplete(order: any) {
-    this.deliveryService.completeDelivery(order.id, order.finalMode).subscribe({
+    const finalMode = order.is_paid === 1 ? (order.payment_method || 'WALLET') : (order.finalMode || 'COD');
+    this.deliveryService.completeDelivery(order.id, finalMode).subscribe({
       next: () => {
         Swal.fire('Delivered!', 'Order closed successfully.', 'success');
         this.loadAllData(); // Refresh list and stats

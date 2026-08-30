@@ -108,7 +108,8 @@
         <div class="footer-action-row" *ngIf="order.order_status !== 'OUT_FOR_DELIVERY'">
             <div class="amount-group">
                 <small>Total Collectable</small>
-                <strong>₹{{ order.total_amount }}</strong>
+                <strong *ngIf="order.is_paid === 1" class="text-success" style="color: #10b981;">₹0.00 (PAID)</strong>
+                <strong *ngIf="order.is_paid !== 1">₹{{ order.total_amount }}</strong>
             </div>
             <div class="button-group">
                 <button (click)="cancelOrder(order)" class="btn-cancel">REJECT</button>
@@ -134,12 +135,24 @@
         <!-- STEP 4: FINAL PAYMENT & SUCCESS (Visible after OTP verified) -->
         <div *ngIf="order.isOtpVerified" class="payment-completion-panel">
             <div class="verified-tag"><i class="bi bi-patch-check-fill"></i> HANDSHAKE SUCCESSFUL</div>
-            <label class="input-label">SELECT PAYMENT MODE RECEIVED:</label>
-            <div class="payment-mode-toggle">
-                <button [class.active]="order.finalMode === 'COD'" (click)="order.finalMode = 'COD'">CASH (COD)</button>
-                <button [class.active]="order.finalMode === 'ONLINE'" (click)="order.finalMode = 'ONLINE'">ONLINE / QR</button>
+
+            <!-- PREPAID / WALLET ORDER NOTICE -->
+            <div *ngIf="order.is_paid === 1" class="prepaid-notice" style="background: #e6f4ea; color: #137333; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-weight: 700; font-size: 13px;">
+                <i class="bi bi-check-circle-fill me-1"></i> ORDER IS ALREADY PAID VIA {{ order.payment_method || 'WALLET / PREPAID' }}. DO NOT COLLECT ANY CASH FROM CUSTOMER.
             </div>
-            <button (click)="onComplete(order)" class="btn-complete-order">COMPLETE DELIVERY</button>
+
+            <!-- COD ORDER PAYMENT SELECTOR -->
+            <div *ngIf="order.is_paid !== 1">
+                <label class="input-label">SELECT PAYMENT MODE RECEIVED:</label>
+                <div class="payment-mode-toggle">
+                    <button [class.active]="order.finalMode === 'COD'" (click)="order.finalMode = 'COD'">CASH (COD)</button>
+                    <button [class.active]="order.finalMode === 'ONLINE'" (click)="order.finalMode = 'ONLINE'">ONLINE / QR</button>
+                </div>
+            </div>
+
+            <button (click)="onComplete(order)" class="btn-complete-order">
+                {{ order.is_paid === 1 ? 'COMPLETE DELIVERY (COLLECT ₹0.00)' : 'COMPLETE DELIVERY' }}
+            </button>
         </div>
 
       </div>
