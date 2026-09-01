@@ -3,7 +3,7 @@
   <div class="history-header">
     <div class="header-left">
       <h1>Delivery History</h1>
-      <p class="subtitle">Complete record of your performance</p>
+      <p class="subtitle">Complete record of completed and cancelled orders</p>
     </div>
     <div class="total-badge">
         <i class="bi bi-layers-half"></i>
@@ -21,7 +21,7 @@
   <div *ngIf="!isLoading && history.length === 0" class="empty-state">
     <div class="empty-icon-box"><i class="bi bi-clipboard-x"></i></div>
     <h3>No Records Found</h3>
-    <p>When you complete deliveries, they will appear here.</p>
+    <p>When deliveries are completed or cancelled, they will appear here.</p>
     <button routerLink="/dashboard" class="btn-go-back">Return to Dashboard</button>
   </div>
 
@@ -36,7 +36,7 @@
         <div class="card-row-top">
           <span class="order-number">#{{ item.order_number }}</span>
           <span class="date-time">
-            <i class="bi bi-clock"></i> {{ item.delivered_at | date:'dd MMM, hh:mm a' }}
+            <i class="bi bi-clock"></i> {{ (item.delivered_at || item.cancelled_at || item.updated_at) | date:'dd MMM, hh:mm a' }}
           </span>
         </div>
 
@@ -54,14 +54,23 @@
           </div>
         </div>
 
+        <!-- Cancellation Notice Box -->
+        <div *ngIf="item.order_status === 'CANCELLED'" class="cancellation-notice">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>Cancelled by <strong>{{ item.cancelled_by || 'ADMIN' }}</strong>: {{ item.cancellation_reason || 'Order cancelled by admin' }}</span>
+        </div>
+
         <div class="card-row-bottom">
-            <div class="status-pill">
+            <div class="status-pill" [ngClass]="{'delivered-pill': item.order_status === 'DELIVERED', 'cancelled-pill': item.order_status === 'CANCELLED'}">
                 <i class="bi bi-patch-check-fill" *ngIf="item.order_status === 'DELIVERED'"></i>
-                <i class="bi bi-x-octagon-fill" *ngIf="item.order_status !== 'DELIVERED'"></i>
+                <i class="bi bi-x-octagon-fill" *ngIf="item.order_status === 'CANCELLED'"></i>
                 {{ item.order_status }}
             </div>
-            <div class="verified-label">
+            <div class="verified-label" *ngIf="item.order_status === 'DELIVERED'">
                 <i class="bi bi-shield-lock"></i> OTP Verified
+            </div>
+            <div class="cancelled-label" *ngIf="item.order_status === 'CANCELLED'">
+                <i class="bi bi-exclamation-circle-fill"></i> Admin Cancelled
             </div>
         </div>
       </div>
