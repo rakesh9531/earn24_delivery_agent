@@ -67,9 +67,25 @@
 .status-badge { font-size: 10px; font-weight: 900; padding: 5px 12px; border-radius: 8px; background: #f1f5f9; color: #475569; text-transform: uppercase; }
 .status-badge.OUT_FOR_DELIVERY { background: #fef3c7; color: #92400e; }
 
-.customer-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.customer-name { margin: 0; font-size: 26px; font-weight: 800; color: var(--dark-blue); }
-.btn-call { background: #f0fdf4; color: var(--primary-green); padding: 10px 20px; border-radius: 14px; font-weight: 800; text-decoration: none; border: 2px solid #dcfce7; font-size: 13px; }
+.customer-section { margin-bottom: 15px; }
+.customer-name { margin: 0 0 12px 0; font-size: 24px; font-weight: 800; color: var(--dark-blue); }
+
+.contact-chips-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+.phone-chip { flex: 1; min-width: 200px; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px; border: 1.5px solid #e2e8f0; background: #f8fafc; gap: 10px; }
+.phone-chip.main-phone { background: #f0fdf4; border-color: #bbf7d0; }
+.phone-chip.alt-phone { background: #f0f9ff; border-color: #bae6fd; }
+
+.phone-details small { display: block; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+.phone-chip.main-phone .phone-details small { color: #15803d; }
+.phone-chip.alt-phone .phone-details small { color: #0369a1; }
+
+.phone-number { font-size: 15px; font-weight: 800; color: var(--dark-blue); display: flex; align-items: center; gap: 6px; }
+
+.btn-call { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; text-decoration: none; transition: all 0.2s ease; white-space: nowrap; }
+.main-call-btn { background: #0CA201; color: #ffffff; border: none; box-shadow: 0 2px 6px rgba(12, 162, 1, 0.25); }
+.main-call-btn:hover { background: #097a01; }
+.alt-call-btn { background: #0284c7; color: #ffffff; border: none; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25); }
+.alt-call-btn:hover { background: #0369a1; }
 
 .customer-address { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
 

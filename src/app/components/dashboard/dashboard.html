@@ -51,11 +51,32 @@
 
       <!-- Card Body: Customer & Pickup -->
       <div class="card-body">
-        <div class="customer-row">
+        <div class="customer-section">
             <h2 class="customer-name">{{ order.customer_name }}</h2>
-            <a [href]="'tel:' + order.customer_phone" class="btn-call">
-                <i class="bi bi-telephone-fill"></i> CALL CUSTOMER
-            </a>
+
+            <div class="contact-chips-container">
+                <!-- Main Customer Phone Chip -->
+                <div class="phone-chip main-phone" *ngIf="order.customer_phone">
+                    <div class="phone-details">
+                        <small>PRIMARY NUMBER</small>
+                        <span class="phone-number"><i class="bi bi-telephone-fill"></i> {{ order.customer_phone }}</span>
+                    </div>
+                    <a [href]="'tel:' + order.customer_phone" class="btn-call main-call-btn">
+                        <i class="bi bi-telephone-outbound-fill"></i> CALL
+                    </a>
+                </div>
+
+                <!-- Alternative Phone Chip -->
+                <div class="phone-chip alt-phone" *ngIf="order.customer_alt_phone">
+                    <div class="phone-details">
+                        <small>ALT NUMBER</small>
+                        <span class="phone-number"><i class="bi bi-telephone-plus-fill"></i> {{ order.customer_alt_phone }}</span>
+                    </div>
+                    <a [href]="'tel:' + order.customer_alt_phone" class="btn-call alt-call-btn">
+                        <i class="bi bi-telephone-outbound-fill"></i> CALL ALT
+                    </a>
+                </div>
+            </div>
         </div>
         <p class="customer-address">
             <i class="bi bi-geo-alt-fill"></i> 
