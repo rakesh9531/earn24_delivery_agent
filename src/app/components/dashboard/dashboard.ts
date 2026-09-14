@@ -16,7 +16,9 @@ import Swal from 'sweetalert2';
 })
 export class Dashboard implements OnInit, OnDestroy {
   // 1. Data Properties
+  activeTab: 'deliveries' | 'pickups' = 'deliveries';
   tasks: any[] = [];
+  pickupTasks: any[] = [];
   stats: any = { delivered_count: 0, cash_collected: 0, online_collected: 0 };
   isLoading = true;
   agentName = '';
@@ -91,6 +93,33 @@ export class Dashboard implements OnInit, OnDestroy {
     this.isLoading = true;
     this.loadStats();
     this.loadTasks();
+    this.loadPickupTasks();
+  }
+
+  loadPickupTasks() {
+    this.deliveryService.getPickupTasks().subscribe({
+      next: (res) => {
+        this.pickupTasks = (res.data || []).map((req: any) => ({
+          ...req,
+          inputOtp: ''
+        }));
+      },
+      error: (err) => console.error('Pickup tasks error:', err)
+    });
+  }
+
+  completePickup(task: any) {
+    if (!task.inputOtp) {
+      Swal.fire('Required', 'Please enter customer Pickup OTP.', 'warning');
+      return;
+    }
+    this.deliveryService.completeReversePickup(task.request_id, task.inputOtp).subscribe({
+      next: (res) => {
+        Swal.fire('Pickup Completed!', res.message || 'Defective item collected.', 'success');
+        this.loadAllData();
+      },
+      error: (err) => Swal.fire('Error', err.error?.message || 'Pickup OTP verification failed.', 'error')
+    });
   }
 
   loadStats() {
