@@ -98,4 +98,16 @@ getPageContent(key: string): Observable<any> {
   return this.http.get(`${this.apiUrl}/admin/public/page?key=${key}&app=AGENT_APP`);
 }
 
+  getPickupTasks(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delivery-app/pickup-tasks`, this.getHeaders());
+  }
+
+  completeReversePickup(requestId: number, otp: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/delivery-app/complete-pickup`, { requestId, otp }, this.getHeaders());
+  }
+
+  completeReplacementDelivery(requestId: number, otp: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/delivery-app/complete-replacement-delivery`, { requestId, otp }, this.getHeaders());
+  }
+
 }

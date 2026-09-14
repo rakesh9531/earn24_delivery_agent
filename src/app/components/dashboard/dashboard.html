@@ -33,12 +33,18 @@
   </div>
 
   <div class="section-divider">
-    <span>Active Deliveries</span>
-    <div class="divider-line"></div>
+    <div class="nav-tabs-wrapper">
+      <button [class.active]="activeTab === 'deliveries'" (click)="activeTab = 'deliveries'" class="tab-btn">
+        <i class="bi bi-box-seam me-1"></i> Active Deliveries ({{ tasks.length }})
+      </button>
+      <button [class.active]="activeTab === 'pickups'" (click)="activeTab = 'pickups'" class="tab-btn pickup-tab">
+        <i class="bi bi-arrow-return-left me-1"></i> Doorstep Pickups & Replacements ({{ pickupTasks.length }})
+      </button>
+    </div>
   </div>
 
-  <!-- 2. ORDERS LIST -->
-  <div class="orders-container">
+  <!-- 2. FORWARD DELIVERIES LIST -->
+  <div *ngIf="activeTab === 'deliveries'" class="orders-container">
     <div *ngFor="let order of tasks" class="order-card shadow-sm">
       
       <!-- Card Header: ID & Badge -->
@@ -180,10 +186,80 @@
     </div>
   </div>
 
+  <!-- 3. DOORSTEP PICKUPS & REPLACEMENTS LIST -->
+  <div *ngIf="activeTab === 'pickups'" class="orders-container">
+    <div *ngFor="let task of pickupTasks" class="order-card shadow-sm reverse-card">
+      <div class="card-header">
+        <div class="order-identity">
+          <span class="id-tag">REQ #{{ task.return_number }} (ORDER #{{ task.order_number }})</span>
+        </div>
+        <span class="status-badge" [ngClass]="task.request_type">{{ task.request_type }}</span>
+      </div>
+
+      <div class="card-body">
+        <div class="customer-section">
+          <h2 class="customer-name">{{ task.customer_name }}</h2>
+          <div class="contact-chips-container">
+            <div class="phone-chip main-phone" *ngIf="task.customer_phone">
+              <div class="phone-details">
+                <small>CUSTOMER PHONE</small>
+                <span class="phone-number"><i class="bi bi-telephone-fill"></i> {{ task.customer_phone }}</span>
+              </div>
+              <a [href]="'tel:' + task.customer_phone" class="btn-call main-call-btn">
+                <i class="bi bi-telephone-outbound-fill"></i> CALL
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <p class="customer-address">
+          <i class="bi bi-geo-alt-fill"></i> 
+          {{ task.address_line_1 }}<span *ngIf="task.address_line_2">, {{ task.address_line_2 }}</span><span *ngIf="task.landmark">, Near {{ task.landmark }}</span>, {{ task.city }}, {{ task.state }} - {{ task.pincode }}
+        </p>
+
+        <div class="pickup-section">
+          <div class="pickup-header">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>ITEM TO PICK UP & INSPECT</span>
+          </div>
+          <div class="pickup-item-row">
+            <div class="item-thumb">
+              <img [src]="'https://newapi.earn24.in' + task.main_image_url" onerror="this.src='https://placehold.co/100x100?text=Product'">
+            </div>
+            <div class="item-info">
+              <h4 class="item-name">{{ task.product_name }}</h4>
+              <p class="text-danger mb-0 mt-1" style="font-size: 12px; font-weight: 700;">Reason: {{ task.reason }}</p>
+              <small class="text-muted" *ngIf="task.comments">Note: {{ task.comments }}</small>
+            </div>
+            <div class="item-qty-box">
+              <small>QTY</small>
+              <span>{{ task.quantity || 1 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="verification-panel" style="background: #1e293b; color: #fff;">
+            <div class="handshake-header" style="color: #fbbf24;"><i class="bi bi-qr-code-scan me-1"></i> VERIFY PICKUP OTP WITH CUSTOMER</div>
+            <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 10px;">Ask customer for 6-digit Pickup OTP shown in their app timeline.</p>
+            <input type="text" [(ngModel)]="task.inputOtp" maxlength="6" class="otp-input-box" placeholder="000000" style="background: #fff; color: #000;">
+            <button (click)="completePickup(task)" class="btn-verify-only" style="background: #0CA201;">
+              VERIFY OTP & COLLECT DEFECTIVE ITEM
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading / Empty State -->
   <div *ngIf="isLoading" class="loader-ui"><div class="spinner"></div><p>Fetching latest tasks...</p></div>
-  <div *ngIf="!isLoading && tasks.length === 0" class="empty-ui">
+  <div *ngIf="!isLoading && activeTab === 'deliveries' && tasks.length === 0" class="empty-ui">
       <i class="bi bi-emoji-smile"></i>
-      <p>You have no pending assignments!</p>
+      <p>You have no pending forward delivery assignments!</p>
+  </div>
+  <div *ngIf="!isLoading && activeTab === 'pickups' && pickupTasks.length === 0" class="empty-ui">
+      <i class="bi bi-check-all"></i>
+      <p>You have no pending reverse pickup assignments!</p>
   </div>
 </div>
