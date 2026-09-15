@@ -217,6 +217,10 @@
           {{ task.address_line_1 }}<span *ngIf="task.address_line_2">, {{ task.address_line_2 }}</span><span *ngIf="task.landmark">, Near {{ task.landmark }}</span>, {{ task.city }}, {{ task.state }} - {{ task.pincode }}
         </p>
 
+        <div *ngIf="task.pickup_scheduled_date" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center;">
+          <i class="bi bi-calendar2-check-fill me-2 text-success"></i> Scheduled Pickup: {{ task.pickup_scheduled_date | date:'dd MMM yyyy' }}
+        </div>
+
         <div class="pickup-section">
           <div class="pickup-header">
             <i class="bi bi-arrow-counterclockwise"></i>
