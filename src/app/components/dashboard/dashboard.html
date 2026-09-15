@@ -35,10 +35,14 @@
   <div class="section-divider">
     <div class="nav-tabs-wrapper">
       <button [class.active]="activeTab === 'deliveries'" (click)="activeTab = 'deliveries'" class="tab-btn">
-        <i class="bi bi-box-seam me-1"></i> Active Deliveries ({{ tasks.length }})
+        <i class="bi bi-box-seam me-1"></i>
+        <span>Active Deliveries</span>
+        <span class="tab-count-badge">{{ tasks.length }}</span>
       </button>
       <button [class.active]="activeTab === 'pickups'" (click)="activeTab = 'pickups'" class="tab-btn pickup-tab">
-        <i class="bi bi-arrow-return-left me-1"></i> Doorstep Pickups & Replacements ({{ pickupTasks.length }})
+        <i class="bi bi-arrow-return-left me-1"></i>
+        <span>Doorstep Pickups & Replacements</span>
+        <span class="tab-count-badge">{{ pickupTasks.length }}</span>
       </button>
     </div>
   </div>
