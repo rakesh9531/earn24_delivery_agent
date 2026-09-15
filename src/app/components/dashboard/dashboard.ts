@@ -70,14 +70,30 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     });
 
-    this.socketSubscriptions.push(orderAssignedSub, orderCancelledSub);
+    // 3. Pickup Assigned Socket Event
+    const pickupAssignedSub = this.socketService.onEvent('pickup_assigned').subscribe({
+      next: (data) => {
+        console.log('Realtime socket event: pickup_assigned received', data);
+        Swal.fire({
+          icon: 'info',
+          title: 'New Pickup Assigned! 📦',
+          text: data.message || 'You have been assigned a new reverse pickup task.',
+          timer: 3500,
+          showConfirmButton: true
+        });
+        this.loadAllData();
+      }
+    });
+
+    this.socketSubscriptions.push(orderAssignedSub, orderCancelledSub, pickupAssignedSub);
   }
 
   startAutoRefresh() {
-    // Periodically poll active tasks every 10 seconds to auto-remove cancelled orders
+    // Periodically poll active tasks and pickups every 10 seconds to auto-update
     this.autoRefreshTimer = setInterval(() => {
       this.loadTasksSilent();
       this.loadStats();
+      this.loadPickupTasks();
     }, 10000);
   }
 
