@@ -316,21 +316,61 @@
         <div class="card-footer" style="padding: 0 16px 16px; background: transparent; border: none;">
           <div class="verification-panel pickup-verification-panel">
             <div class="handshake-header pickup-handshake-header">
-              <i class="bi bi-box-seam"></i> DOORSTEP PHYSICAL INSPECTION & COLLECTION
+              <i class="bi bi-camera-fill"></i> STEP 1: DOORSTEP PRODUCT PHOTO PROOF
             </div>
             <p class="verification-hint">
-              Inspect the item condition and packaging. Click below to confirm pickup and collect the return item.
+              Take a clear photo of the return product at the customer's doorstep as proof of physical inspection.
             </p>
-            <button 
-              type="button"
-              (click)="completePickup(task)" 
-              class="btn-complete-pickup" 
-              [disabled]="task.isSubmitting"
-            >
-              <i class="bi bi-check-circle-fill fs-5" *ngIf="!task.isSubmitting"></i>
-              <i class="bi bi-arrow-repeat spin-icon fs-5" *ngIf="task.isSubmitting"></i>
-              <span>{{ task.isSubmitting ? 'COLLECTING ITEM...' : 'CONFIRM & COLLECT RETURN ITEM' }}</span>
-            </button>
+
+            <!-- Hidden File Input for Camera / Gallery -->
+            <input 
+              type="file" 
+              #photoInput 
+              accept="image/*" 
+              capture="environment" 
+              style="display: none;" 
+              (change)="onCaptureProof($event, task)" 
+            />
+
+            <!-- Photo Upload Area -->
+            <div class="proof-upload-box" *ngIf="!task.previewImage" (click)="photoInput.click()">
+              <div class="upload-icon-circle">
+                <i class="bi bi-camera-fill"></i>
+              </div>
+              <div class="upload-text">
+                <strong>Tap to Take Product Photo</strong>
+                <small>Opens Phone Camera or Gallery</small>
+              </div>
+            </div>
+
+            <!-- Photo Preview Area -->
+            <div class="proof-preview-card" *ngIf="task.previewImage">
+              <div class="preview-img-wrapper">
+                <img [src]="task.previewImage" alt="Doorstep Product Proof" class="proof-thumb" />
+                <span class="preview-badge"><i class="bi bi-check-circle-fill"></i> Photo Ready</span>
+              </div>
+              <div class="preview-actions">
+                <div class="preview-label">Inspection Photo Ready for Admin & Merchant</div>
+                <button type="button" class="btn-retake-photo" (click)="photoInput.click()">
+                  <i class="bi bi-arrow-repeat"></i> Retake Photo
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Confirm Pickup Button -->
+            <div style="margin-top: 14px;">
+              <button 
+                type="button"
+                (click)="completePickup(task)" 
+                class="btn-complete-pickup" 
+                [disabled]="!task.previewImage || task.isSubmitting"
+              >
+                <i class="bi bi-check2-circle fs-5" *ngIf="!task.isSubmitting && task.previewImage"></i>
+                <i class="bi bi-camera me-1 fs-5" *ngIf="!task.isSubmitting && !task.previewImage"></i>
+                <i class="bi bi-arrow-repeat spin-icon fs-5" *ngIf="task.isSubmitting"></i>
+                <span>{{ task.isSubmitting ? 'UPLOADING & COLLECTING...' : (task.previewImage ? 'CONFIRM & COLLECT RETURN ITEM' : 'TAKE PHOTO TO ENABLE COLLECTION') }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
