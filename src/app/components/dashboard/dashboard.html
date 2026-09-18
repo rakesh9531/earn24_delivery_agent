@@ -314,7 +314,41 @@
         </div>
 
         <div class="card-footer" style="padding: 0 16px 16px; background: transparent; border: none;">
-          <div class="verification-panel pickup-verification-panel">
+          
+          <!-- STATE 1: Defective Item Collected, In Agent Hand -> Return to Hub/Merchant -->
+          <div class="handover-panel" *ngIf="isItemCollected(task)">
+            <div class="handover-header">
+              <i class="bi bi-box-seam-fill text-warning"></i>
+              <span>DEFECTIVE ITEM IN HAND — RETURN TO HUB</span>
+            </div>
+            <div class="handover-dest-card">
+              <div class="dest-badge">HANDOVER DESTINATION:</div>
+              <div class="dest-title">
+                <i class="bi bi-shop-window text-primary" *ngIf="task.merchant_name"></i>
+                <i class="bi bi-building text-primary" *ngIf="!task.merchant_name"></i>
+                <strong>{{ task.merchant_name ? ('Merchant Store: ' + task.merchant_name) : 'Earn24 Central Hub / Warehouse' }}</strong>
+              </div>
+              <div class="dest-address" *ngIf="task.merchant_address">
+                <i class="bi bi-geo-alt"></i> {{ task.merchant_address }}
+              </div>
+            </div>
+
+            <div class="handover-status-row">
+              <div class="status-chip success">
+                <i class="bi bi-check-circle-fill"></i> Doorstep Photo Verified
+              </div>
+              <div class="status-chip pending">
+                <i class="bi bi-hourglass-split"></i> Awaiting Receipt at Hub
+              </div>
+            </div>
+
+            <p class="handover-info-note">
+              Please hand this physical product over to Hub Manager / Merchant. They will confirm receipt on their panel to close your custody.
+            </p>
+          </div>
+
+          <!-- STATE 2: Pending Pickup -> Doorstep Camera Inspection & Collection Flow -->
+          <div class="verification-panel pickup-verification-panel" *ngIf="!isItemCollected(task)">
             <div class="handshake-header pickup-handshake-header">
               <i class="bi bi-camera-fill"></i> STEP 1: DOORSTEP PRODUCT PHOTO PROOF
             </div>
