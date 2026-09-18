@@ -23,8 +23,20 @@ export class Dashboard implements OnInit, OnDestroy {
   isLoading = true;
   agentName = '';
   isSidebarOpen = false;
+  companyUpiId = 'earn24payments@okhdfcbank';
   private socketSubscriptions: Subscription[] = [];
   private autoRefreshTimer: any = null;
+
+  setPaymentMode(order: any, mode: 'COD' | 'ONLINE') {
+    order.finalMode = mode;
+  }
+
+  getQrCodeUrl(order: any): string {
+    const amount = Number(order.collectable_amount || order.total_amount || 0).toFixed(2);
+    const orderNo = order.order_number || order.id || 'ORDER';
+    const upiUri = `upi://pay?pa=${this.companyUpiId}&pn=Earn24&am=${amount}&cu=INR&tn=Order_${orderNo}`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
+  }
 
   constructor(
     private deliveryService: DeliveryService, 
