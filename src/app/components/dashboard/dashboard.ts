@@ -23,20 +23,8 @@ export class Dashboard implements OnInit, OnDestroy {
   isLoading = true;
   agentName = '';
   isSidebarOpen = false;
-  companyUpiId = 'earn24payments@okhdfcbank';
   private socketSubscriptions: Subscription[] = [];
   private autoRefreshTimer: any = null;
-
-  setPaymentMode(order: any, mode: 'COD' | 'ONLINE') {
-    order.finalMode = mode;
-  }
-
-  getQrCodeUrl(order: any): string {
-    const amount = Number(order.collectable_amount || order.total_amount || 0).toFixed(2);
-    const orderNo = order.order_number || order.id || 'ORDER';
-    const upiUri = `upi://pay?pa=${this.companyUpiId}&pn=Earn24&am=${amount}&cu=INR&tn=Order_${orderNo}`;
-    return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
-  }
 
   constructor(
     private deliveryService: DeliveryService, 
@@ -50,6 +38,70 @@ export class Dashboard implements OnInit, OnDestroy {
     this.loadAllData();
     this.setupSocketListeners();
     this.startAutoRefresh();
+  }
+
+  setPaymentMode(order: any, mode: 'COD' | 'ONLINE') {
+    order.finalMode = mode;
+  }
+
+  getCheckoutUrl(order: any): string {
+    return `https://newapi.earn24.in/api/delivery-app/orders/${order.id}/payu-checkout`;
+  }
+
+  getQrCodeUrl(order: any): string {
+    const checkoutUrl = this.getCheckoutUrl(order);
+    return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(checkoutUrl)}`;
+  }
+
+  checkPaymentStatus(order: any) {
+    order.checkingStatus = true;
+    this.deliveryService.getOrderPaymentStatus(order.id).subscribe({
+      next: (res) => {
+        order.checkingStatus = false;
+        if (res.status && res.isPaid) {
+          order.is_paid = 1;
+          order.payment_status = 'PAID';
+          order.payment_method = res.paymentMethod || 'PAYU';
+          order.finalMode = 'ONLINE';
+          Swal.fire({
+            icon: 'success',
+            title: 'Payment Verified! ✅',
+            text: `₹${res.amount} received via PayU Gateway. You can now complete the delivery.`,
+            confirmButtonColor: '#16a34a'
+          });
+        } else {
+          Swal.fire({
+            icon: 'info',
+            title: 'Payment Pending',
+            text: 'Customer has not completed the PayU payment yet. Please ask them to complete it or pay via Cash.',
+            confirmButtonColor: '#2563eb'
+          });
+        }
+      },
+      error: (err) => {
+        order.checkingStatus = false;
+        console.error('Error checking payment status:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Status Check Failed',
+          text: 'Unable to check status. Please check your network.'
+        });
+      }
+    });
+  }
+
+  shareWhatsAppLink(order: any) {
+    const url = this.getCheckoutUrl(order);
+    const amount = Number(order.collectable_amount || order.total_amount || 0).toFixed(2);
+    const orderNo = order.order_number || order.id;
+    const phone = (order.customer_phone || order.phone || '').replace(/[^0-9]/g, '');
+    const text = encodeURIComponent(
+      `Hello! Here is your Earn24 payment link of ₹${amount} for Order #${orderNo}: ${url}\n\nYou can pay securely using Google Pay, PhonePe, Paytm, BHIM UPI, NetBanking or Cards.`
+    );
+    const waUrl = phone && phone.length >= 10 
+      ? `https://wa.me/91${phone.slice(-10)}?text=${text}` 
+      : `https://wa.me/?text=${text}`;
+    window.open(waUrl, '_blank');
   }
 
   setupSocketListeners() {
@@ -97,7 +149,31 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     });
 
-    this.socketSubscriptions.push(orderAssignedSub, orderCancelledSub, pickupAssignedSub);
+    // 4. PayU Doorstep Payment Received Socket Event
+    const paymentReceivedSub = this.socketService.onEvent('order_payment_received').subscribe({
+      next: (data) => {
+        console.log('Realtime socket event: order_payment_received', data);
+        if (data && data.orderId) {
+          const target = this.tasks.find(o => o.id === data.orderId);
+          if (target) {
+            target.is_paid = 1;
+            target.payment_status = 'PAID';
+            target.payment_method = 'PAYU';
+            target.finalMode = 'ONLINE';
+          }
+          Swal.fire({
+            icon: 'success',
+            title: 'Payment Received! 🎉',
+            text: `₹${data.amount || ''} paid successfully via PayU for Order #${data.orderId}.`,
+            timer: 4500,
+            showConfirmButton: true
+          });
+          this.loadStats();
+        }
+      }
+    });
+
+    this.socketSubscriptions.push(orderAssignedSub, orderCancelledSub, pickupAssignedSub, paymentReceivedSub);
   }
 
   startAutoRefresh() {
@@ -105,7 +181,7 @@ export class Dashboard implements OnInit, OnDestroy {
     this.autoRefreshTimer = setInterval(() => {
       this.loadTasksSilent();
       this.loadStats();
-      this.loadPickupTasks();
+      this.loadPickupTasksSilent();
     }, 10000);
   }
 
@@ -127,26 +203,63 @@ export class Dashboard implements OnInit, OnDestroy {
   loadPickupTasks() {
     this.deliveryService.getPickupTasks().subscribe({
       next: (res) => {
-        this.pickupTasks = (res.data || []).map((req: any) => ({
-          ...req,
-          inputOtp: ''
-        }));
+        const fetchedTasks = res.data || [];
+        this.pickupTasks = fetchedTasks.map((req: any) => {
+          const existing = this.pickupTasks.find(p => (p.request_id && p.request_id === req.request_id) || (p.id && p.id === req.id));
+          return {
+            ...req,
+            inputOtp: existing ? existing.inputOtp : '',
+            isSubmitting: false
+          };
+        });
       },
       error: (err) => console.error('Pickup tasks error:', err)
     });
   }
 
+  loadPickupTasksSilent() {
+    this.deliveryService.getPickupTasks().subscribe({
+      next: (res) => {
+        const fetchedTasks = res.data || [];
+        this.pickupTasks = fetchedTasks.map((req: any) => {
+          const existing = this.pickupTasks.find(p => (p.request_id && p.request_id === req.request_id) || (p.id && p.id === req.id));
+          return {
+            ...req,
+            inputOtp: existing ? existing.inputOtp : '',
+            isSubmitting: existing ? existing.isSubmitting : false
+          };
+        });
+      },
+      error: (err) => console.error('Pickup tasks silent error:', err)
+    });
+  }
+
   completePickup(task: any) {
-    if (!task.inputOtp) {
-      Swal.fire('Required', 'Please enter customer Pickup OTP.', 'warning');
+    const cleanOtp = (task.inputOtp || '').trim();
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      Swal.fire('Required', 'Please enter a valid 6-digit Customer Pickup OTP.', 'warning');
       return;
     }
-    this.deliveryService.completeReversePickup(task.request_id, task.inputOtp).subscribe({
+    task.isSubmitting = true;
+    this.deliveryService.completeReversePickup(task.request_id, cleanOtp).subscribe({
       next: (res) => {
-        Swal.fire('Pickup Completed!', res.message || 'Defective item collected.', 'success');
+        task.isSubmitting = false;
+        Swal.fire({
+          icon: 'success',
+          title: 'Pickup Completed! 📦',
+          text: res.message || 'Defective item collected and return verified successfully.',
+          confirmButtonColor: '#16a34a'
+        });
         this.loadAllData();
       },
-      error: (err) => Swal.fire('Error', err.error?.message || 'Pickup OTP verification failed.', 'error')
+      error: (err) => {
+        task.isSubmitting = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Verification Failed',
+          text: err.error?.message || 'Invalid Pickup OTP. Please ask customer to re-verify.'
+        });
+      }
     });
   }
 
@@ -161,13 +274,17 @@ export class Dashboard implements OnInit, OnDestroy {
     this.deliveryService.getMyTasks().subscribe({
       next: (res) => {
         // Map the API data to include local UI state flags
-        this.tasks = (res.data || []).map((order: any) => ({
-          ...order,
-          inputOtp: '',
-          finalMode: 'COD', 
-          isOtpRequested: false, 
-          isOtpVerified: false   
-        }));
+        this.tasks = (res.data || []).map((order: any) => {
+          const isPaid = (order.is_paid === 1 || order.payment_status === 'PAID' || order.payment_status === 'COMPLETED');
+          return {
+            ...order,
+            is_paid: isPaid ? 1 : 0,
+            inputOtp: '',
+            finalMode: isPaid ? 'ONLINE' : (order.payment_method === 'COD' ? 'COD' : 'ONLINE'), 
+            isOtpRequested: false, 
+            isOtpVerified: false   
+          };
+        });
         this.isLoading = false;
       },
       error: (err) => {
@@ -184,10 +301,13 @@ export class Dashboard implements OnInit, OnDestroy {
         // Preserve local state (inputOtp, isOtpRequested, isOtpVerified) if order still exists
         this.tasks = fetchedOrders.map((newOrder: any) => {
           const existing = this.tasks.find(t => t.id === newOrder.id);
+          const isPaid = (newOrder.is_paid === 1 || newOrder.payment_status === 'PAID' || newOrder.payment_status === 'COMPLETED' || (existing && existing.is_paid === 1));
           return {
             ...newOrder,
+            is_paid: isPaid ? 1 : 0,
+            payment_status: isPaid ? 'PAID' : newOrder.payment_status,
             inputOtp: existing ? existing.inputOtp : '',
-            finalMode: existing ? existing.finalMode : 'COD',
+            finalMode: existing ? existing.finalMode : (isPaid ? 'ONLINE' : 'COD'),
             isOtpRequested: existing ? existing.isOtpRequested : false,
             isOtpVerified: existing ? existing.isOtpVerified : false
           };
@@ -248,7 +368,9 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // PHASE 4: Payment and Final Completion
   onComplete(order: any) {
-    const finalMode = order.is_paid === 1 ? (order.payment_method || 'WALLET') : (order.finalMode || 'COD');
+    const finalMode = (order.is_paid === 1 || order.payment_status === 'PAID') 
+      ? (order.payment_method || 'PAYU') 
+      : (order.finalMode || 'COD');
     this.deliveryService.completeDelivery(order.id, finalMode).subscribe({
       next: () => {
         Swal.fire('Delivered!', 'Order closed successfully.', 'success');
