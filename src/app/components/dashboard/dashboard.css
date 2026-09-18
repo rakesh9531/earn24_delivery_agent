@@ -461,6 +461,119 @@
     gap: 8px;
 }
 
+/* VERIFICATION PANEL (For Deliveries and Pickups) */
+.verification-panel {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.pickup-verification-panel {
+    border-color: #fed7aa;
+    background: linear-gradient(180deg, #fffbf5 0%, #ffffff 100%);
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.07);
+}
+
+.handshake-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.pickup-handshake-header {
+    background: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.verification-hint {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+.otp-action-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.otp-input-box {
+    flex: 0 0 140px;
+    height: 46px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 5px;
+    text-align: center;
+    color: #0f172a;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.otp-input-box:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.btn-verify-only {
+    flex: 1;
+    min-height: 46px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.btn-verify-only:hover:not(:disabled) {
+    background: #059669;
+    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
+}
+
+.btn-verify-only:disabled {
+    background: #cbd5e1;
+    color: #64748b;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+@media (max-width: 500px) {
+    .otp-action-row {
+        flex-direction: column;
+    }
+    .otp-input-box {
+        flex: 1;
+        width: 100%;
+    }
+}
+
 /* PAYMENT COMPLETION PANEL & PAYMENT MODE SELECTOR */
 .payment-completion-panel {
     background: #ffffff;

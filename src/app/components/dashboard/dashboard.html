@@ -157,10 +157,14 @@
 
         <!-- STEP 3: OTP VERIFICATION (Visible after sending OTP) -->
         <div *ngIf="order.isOtpRequested && !order.isOtpVerified" class="verification-panel">
-            <div class="handshake-header"><i class="bi bi-shield-lock"></i> VERIFICATION STEP</div>
-            <label class="input-label">Enter 6-Digit OTP from Customer</label>
-            <input type="text" [(ngModel)]="order.inputOtp" maxlength="6" class="otp-input-box" placeholder="000000">
-            <button (click)="onVerifyOtp(order)" class="btn-verify-only">VERIFY OTP</button>
+            <div class="handshake-header"><i class="bi bi-shield-lock-fill"></i> VERIFY DELIVERY OTP</div>
+            <p class="verification-hint">Ask customer for the 6-digit Delivery OTP sent to their mobile phone.</p>
+            <div class="otp-action-row">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" [(ngModel)]="order.inputOtp" maxlength="6" class="otp-input-box" placeholder="------">
+                <button type="button" (click)="onVerifyOtp(order)" class="btn-verify-only" [disabled]="!order.inputOtp || order.inputOtp.length < 6">
+                    <i class="bi bi-check2-circle fs-5"></i> VERIFY OTP
+                </button>
+            </div>
         </div>
 
         <!-- STEP 4: FINAL PAYMENT & SUCCESS (Visible after OTP verified) -->
@@ -309,14 +313,35 @@
           </div>
         </div>
 
-        <div class="card-footer">
-          <div class="verification-panel" style="background: #1e293b; color: #fff;">
-            <div class="handshake-header" style="color: #fbbf24;"><i class="bi bi-qr-code-scan me-1"></i> VERIFY PICKUP OTP WITH CUSTOMER</div>
-            <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 10px;">Ask customer for 6-digit Pickup OTP shown in their app timeline.</p>
-            <input type="text" [(ngModel)]="task.inputOtp" maxlength="6" class="otp-input-box" placeholder="000000" style="background: #fff; color: #000;">
-            <button (click)="completePickup(task)" class="btn-verify-only" style="background: #0CA201;">
-              VERIFY OTP & COLLECT DEFECTIVE ITEM
-            </button>
+        <div class="card-footer" style="padding: 0 16px 16px; background: transparent; border: none;">
+          <div class="verification-panel pickup-verification-panel">
+            <div class="handshake-header pickup-handshake-header">
+              <i class="bi bi-shield-check"></i> VERIFY PICKUP OTP WITH CUSTOMER
+            </div>
+            <p class="verification-hint">
+              Ask customer for the <strong>6-digit Pickup OTP</strong> shown on their Earn24 app order screen to collect item.
+            </p>
+            <div class="otp-action-row">
+              <input 
+                type="text" 
+                inputmode="numeric" 
+                pattern="[0-9]*" 
+                [(ngModel)]="task.inputOtp" 
+                maxlength="6" 
+                class="otp-input-box" 
+                placeholder="------" 
+              />
+              <button 
+                type="button"
+                (click)="completePickup(task)" 
+                class="btn-verify-only" 
+                [disabled]="!task.inputOtp || task.inputOtp.length < 6 || task.isSubmitting"
+              >
+                <i class="bi bi-box-seam me-1" *ngIf="!task.isSubmitting"></i>
+                <i class="bi bi-arrow-repeat spin-icon me-1" *ngIf="task.isSubmitting"></i>
+                <span>{{ task.isSubmitting ? 'VERIFYING...' : 'VERIFY OTP & COLLECT ITEM' }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

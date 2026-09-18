@@ -181,7 +181,7 @@ export class Dashboard implements OnInit, OnDestroy {
     this.autoRefreshTimer = setInterval(() => {
       this.loadTasksSilent();
       this.loadStats();
-      this.loadPickupTasks();
+      this.loadPickupTasksSilent();
     }, 10000);
   }
 
@@ -203,26 +203,63 @@ export class Dashboard implements OnInit, OnDestroy {
   loadPickupTasks() {
     this.deliveryService.getPickupTasks().subscribe({
       next: (res) => {
-        this.pickupTasks = (res.data || []).map((req: any) => ({
-          ...req,
-          inputOtp: ''
-        }));
+        const fetchedTasks = res.data || [];
+        this.pickupTasks = fetchedTasks.map((req: any) => {
+          const existing = this.pickupTasks.find(p => (p.request_id && p.request_id === req.request_id) || (p.id && p.id === req.id));
+          return {
+            ...req,
+            inputOtp: existing ? existing.inputOtp : '',
+            isSubmitting: false
+          };
+        });
       },
       error: (err) => console.error('Pickup tasks error:', err)
     });
   }
 
+  loadPickupTasksSilent() {
+    this.deliveryService.getPickupTasks().subscribe({
+      next: (res) => {
+        const fetchedTasks = res.data || [];
+        this.pickupTasks = fetchedTasks.map((req: any) => {
+          const existing = this.pickupTasks.find(p => (p.request_id && p.request_id === req.request_id) || (p.id && p.id === req.id));
+          return {
+            ...req,
+            inputOtp: existing ? existing.inputOtp : '',
+            isSubmitting: existing ? existing.isSubmitting : false
+          };
+        });
+      },
+      error: (err) => console.error('Pickup tasks silent error:', err)
+    });
+  }
+
   completePickup(task: any) {
-    if (!task.inputOtp) {
-      Swal.fire('Required', 'Please enter customer Pickup OTP.', 'warning');
+    const cleanOtp = (task.inputOtp || '').trim();
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      Swal.fire('Required', 'Please enter a valid 6-digit Customer Pickup OTP.', 'warning');
       return;
     }
-    this.deliveryService.completeReversePickup(task.request_id, task.inputOtp).subscribe({
+    task.isSubmitting = true;
+    this.deliveryService.completeReversePickup(task.request_id, cleanOtp).subscribe({
       next: (res) => {
-        Swal.fire('Pickup Completed!', res.message || 'Defective item collected.', 'success');
+        task.isSubmitting = false;
+        Swal.fire({
+          icon: 'success',
+          title: 'Pickup Completed! 📦',
+          text: res.message || 'Defective item collected and return verified successfully.',
+          confirmButtonColor: '#16a34a'
+        });
         this.loadAllData();
       },
-      error: (err) => Swal.fire('Error', err.error?.message || 'Pickup OTP verification failed.', 'error')
+      error: (err) => {
+        task.isSubmitting = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Verification Failed',
+          text: err.error?.message || 'Invalid Pickup OTP. Please ask customer to re-verify.'
+        });
+      }
     });
   }
 
