@@ -258,6 +258,13 @@ export class Dashboard implements OnInit, OnDestroy {
     task.pickupProofBase64 = null;
   }
 
+  isItemCollected(task: any): boolean {
+    if (!task) return false;
+    if (task.picked_up_at) return true;
+    const s = (task.request_status || task.status || '').toUpperCase();
+    return ['PICKED_UP', 'IN_TRANSIT_TO_HUB', 'REPLACEMENT_INITIATED'].includes(s);
+  }
+
   completePickup(task: any) {
     if (!task.pickupProofBase64) {
       Swal.fire({
@@ -283,12 +290,15 @@ export class Dashboard implements OnInit, OnDestroy {
         this.deliveryService.completeReversePickup(task.request_id, task.pickupProofBase64).subscribe({
           next: (res) => {
             task.isSubmitting = false;
-            // Instantly remove task from view to prevent re-clicks
-            this.pickupTasks = this.pickupTasks.filter(p => p.request_id !== task.request_id);
+            // Transition immediately to in-transit handover state
+            task.request_status = 'IN_TRANSIT_TO_HUB';
+            task.status = 'IN_TRANSIT_TO_HUB';
+            task.picked_up_at = new Date().toISOString();
+
             Swal.fire({
               icon: 'success',
               title: 'Pickup Completed! 📦',
-              text: res.message || 'Defective item collected and proof recorded successfully.',
+              text: 'Item collected with proof. Please return item to Hub/Merchant.',
               confirmButtonColor: '#16a34a'
             });
             this.loadAllData();
