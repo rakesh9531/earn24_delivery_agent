@@ -173,16 +173,55 @@
             </div>
 
             <!-- COD ORDER PAYMENT SELECTOR -->
-            <div *ngIf="order.is_paid !== 1">
+            <div *ngIf="order.is_paid !== 1" class="payment-selection-section">
                 <label class="input-label">SELECT PAYMENT MODE RECEIVED:</label>
                 <div class="payment-mode-toggle">
-                    <button [class.active]="order.finalMode === 'COD'" (click)="order.finalMode = 'COD'">CASH (COD)</button>
-                    <button [class.active]="order.finalMode === 'ONLINE'" (click)="order.finalMode = 'ONLINE'">ONLINE / QR</button>
+                    <button type="button" class="payment-mode-btn" [class.active]="order.finalMode === 'COD'" (click)="setPaymentMode(order, 'COD')">
+                        <i class="bi bi-cash-stack"></i> CASH (COD)
+                    </button>
+                    <button type="button" class="payment-mode-btn" [class.active]="order.finalMode === 'ONLINE'" (click)="setPaymentMode(order, 'ONLINE')">
+                        <i class="bi bi-qr-code-scan"></i> ONLINE / QR
+                    </button>
+                </div>
+
+                <!-- CASH (COD) MODE DETAILS -->
+                <div *ngIf="order.finalMode === 'COD'" class="cash-collection-card">
+                    <div class="cash-row">
+                        <span class="cash-label"><i class="bi bi-cash-coin text-success"></i> Collect Cash:</span>
+                        <span class="cash-amount">₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <small class="cash-tip"><i class="bi bi-info-circle"></i> Collect the exact cash amount from customer before completing delivery.</small>
+                </div>
+
+                <!-- ONLINE / QR MODE DETAILS -->
+                <div *ngIf="order.finalMode === 'ONLINE'" class="online-qr-card">
+                    <div class="qr-banner">
+                        <span class="qr-title"><i class="bi bi-qr-code text-primary"></i> Scan & Pay via any UPI App</span>
+                        <span class="qr-pay-amount">₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="qr-container">
+                        <img [src]="getQrCodeUrl(order)" alt="UPI Payment QR Code" class="payment-qr-img" />
+                    </div>
+                    <div class="qr-details">
+                        <div class="upi-id-pill">
+                            <i class="bi bi-check-circle-fill text-success"></i> UPI ID: <strong>{{ companyUpiId }}</strong>
+                        </div>
+                        <p class="qr-instructions">
+                            Show this QR code to customer. Customer can scan with <strong>PhonePe, Google Pay, Paytm, BHIM</strong> or any UPI app.
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <button (click)="onComplete(order)" class="btn-complete-order">
-                {{ order.is_paid === 1 ? 'COMPLETE DELIVERY (COLLECT ₹0.00)' : 'COMPLETE DELIVERY' }}
+            <button (click)="onComplete(order)" class="btn-complete-order" [ngClass]="{'btn-cash': order.finalMode === 'COD' && order.is_paid !== 1, 'btn-online': order.finalMode === 'ONLINE' && order.is_paid !== 1}">
+                <i class="bi bi-check2-circle me-1"></i>
+                <ng-container *ngIf="order.is_paid === 1">COMPLETE DELIVERY (COLLECT ₹0.00)</ng-container>
+                <ng-container *ngIf="order.is_paid !== 1 && order.finalMode === 'COD'">
+                    CONFIRM CASH RECEIVED (₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }}) & DELIVER
+                </ng-container>
+                <ng-container *ngIf="order.is_paid !== 1 && order.finalMode === 'ONLINE'">
+                    CONFIRM ONLINE PAID (₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }}) & DELIVER
+                </ng-container>
             </button>
         </div>
 
