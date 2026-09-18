@@ -82,21 +82,17 @@ export class DeliveryService {
     );
   }
 
+  getHistory(page: number = 1): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delivery-app/history?page=${page}`, this.getHeaders());
+  }
 
-getHistory(page: number = 1): Observable<any> {
-  // Pass the page number as a query parameter
-  return this.http.get(`${this.apiUrl}/delivery-app/history?page=${page}`, this.getHeaders());
-}
-
- getEarningsDetails(page: number = 1): Observable<any> {
+  getEarningsDetails(page: number = 1): Observable<any> {
     return this.http.get(`${this.apiUrl}/delivery-app/earnings-summary?page=${page}`, this.getHeaders());
   }
 
-// Add this method to your DeliveryService class
-getPageContent(key: string): Observable<any> {
-  // We hardcode 'AGENT_APP' as the target app for this portal
-  return this.http.get(`${this.apiUrl}/admin/public/page?key=${key}&app=AGENT_APP`);
-}
+  getPageContent(key: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admin/public/page?key=${key}&app=AGENT_APP`);
+  }
 
   getPickupTasks(): Observable<any> {
     return this.http.get(`${this.apiUrl}/delivery-app/pickup-tasks`, this.getHeaders());
@@ -110,4 +106,7 @@ getPageContent(key: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/delivery-app/complete-replacement-delivery`, { requestId, otp }, this.getHeaders());
   }
 
+  getOrderPaymentStatus(orderId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delivery-app/orders/${orderId}/payment-status`);
+  }
 }

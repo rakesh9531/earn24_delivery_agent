@@ -196,30 +196,54 @@
                 <!-- ONLINE / QR MODE DETAILS -->
                 <div *ngIf="order.finalMode === 'ONLINE'" class="online-qr-card">
                     <div class="qr-banner">
-                        <span class="qr-title"><i class="bi bi-qr-code text-primary"></i> Scan & Pay via any UPI App</span>
+                        <span class="qr-title"><i class="bi bi-shield-check text-primary"></i> PayU Online Payment</span>
                         <span class="qr-pay-amount">₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }}</span>
                     </div>
-                    <div class="qr-container">
-                        <img [src]="getQrCodeUrl(order)" alt="UPI Payment QR Code" class="payment-qr-img" />
-                    </div>
-                    <div class="qr-details">
-                        <div class="upi-id-pill">
-                            <i class="bi bi-check-circle-fill text-success"></i> UPI ID: <strong>{{ companyUpiId }}</strong>
+
+                    <!-- Payment already verified state -->
+                    <div *ngIf="order.is_paid === 1 || order.payment_status === 'PAID'" class="payment-verified-banner">
+                        <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                        <div>
+                            <div class="fw-bold text-success">PAYMENT RECEIVED (PAYU)</div>
+                            <small class="text-muted">₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }} verified. Ready to complete.</small>
                         </div>
-                        <p class="qr-instructions">
-                            Show this QR code to customer. Customer can scan with <strong>PhonePe, Google Pay, Paytm, BHIM</strong> or any UPI app.
-                        </p>
+                    </div>
+
+                    <!-- Scan & Pay with PayU -->
+                    <div *ngIf="order.is_paid !== 1 && order.payment_status !== 'PAID'">
+                        <div class="qr-container">
+                            <img [src]="getQrCodeUrl(order)" alt="PayU Payment QR Code" class="payment-qr-img" />
+                        </div>
+                        <div class="qr-details">
+                            <div class="payu-gateway-pill">
+                                <i class="bi bi-patch-check-fill text-primary"></i> Powered by <strong>PayU Official Gateway</strong>
+                            </div>
+                            <p class="qr-instructions">
+                                Scan with any UPI app (<strong>PhonePe, Google Pay, Paytm, BHIM</strong>) or Mobile Camera.
+                            </p>
+                            <div class="qr-actions-row">
+                                <button type="button" class="btn-qr-action btn-refresh-status" (click)="checkPaymentStatus(order)" [disabled]="order.checkingStatus">
+                                    <i class="bi bi-arrow-repeat" [class.spin-icon]="order.checkingStatus"></i> 
+                                    {{ order.checkingStatus ? 'Checking...' : 'Check Status' }}
+                                </button>
+                                <button type="button" class="btn-qr-action btn-share-wa" (click)="shareWhatsAppLink(order)">
+                                    <i class="bi bi-whatsapp"></i> WhatsApp Link
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <button (click)="onComplete(order)" class="btn-complete-order" [ngClass]="{'btn-cash': order.finalMode === 'COD' && order.is_paid !== 1, 'btn-online': order.finalMode === 'ONLINE' && order.is_paid !== 1}">
+            <button (click)="onComplete(order)" class="btn-complete-order" [ngClass]="{'btn-cash': order.finalMode === 'COD' && order.is_paid !== 1 && order.payment_status !== 'PAID', 'btn-online': order.finalMode === 'ONLINE' || order.is_paid === 1 || order.payment_status === 'PAID'}">
                 <i class="bi bi-check2-circle me-1"></i>
-                <ng-container *ngIf="order.is_paid === 1">COMPLETE DELIVERY (COLLECT ₹0.00)</ng-container>
-                <ng-container *ngIf="order.is_paid !== 1 && order.finalMode === 'COD'">
+                <ng-container *ngIf="order.is_paid === 1 || order.payment_status === 'PAID'">
+                    COMPLETE DELIVERY (ONLINE PAID ₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }})
+                </ng-container>
+                <ng-container *ngIf="order.is_paid !== 1 && order.payment_status !== 'PAID' && order.finalMode === 'COD'">
                     CONFIRM CASH RECEIVED (₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }}) & DELIVER
                 </ng-container>
-                <ng-container *ngIf="order.is_paid !== 1 && order.finalMode === 'ONLINE'">
+                <ng-container *ngIf="order.is_paid !== 1 && order.payment_status !== 'PAID' && order.finalMode === 'ONLINE'">
                     CONFIRM ONLINE PAID (₹{{ (order.collectable_amount || order.total_amount || 0) | number:'1.2-2' }}) & DELIVER
                 </ng-container>
             </button>
