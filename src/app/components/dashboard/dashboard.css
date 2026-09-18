@@ -596,6 +596,127 @@
     box-shadow: none;
 }
 
+/* DOORSTEP PHOTO PROOF STYLES */
+.proof-upload-box {
+    background: #ffffff;
+    border: 2px dashed #3b82f6;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.proof-upload-box:hover {
+    background: #eff6ff;
+    border-color: #1d4ed8;
+}
+
+.upload-icon-circle {
+    width: 44px;
+    height: 44px;
+    background: #dbeafe;
+    color: #2563eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.upload-text strong {
+    display: block;
+    font-size: 13px;
+    color: #1e3a8a;
+    font-weight: 800;
+}
+
+.upload-text small {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.proof-preview-card {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+}
+
+.preview-img-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.proof-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #10b981;
+    display: block;
+}
+
+.preview-badge {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #10b981;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.preview-actions {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.preview-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #15803d;
+}
+
+.btn-retake-photo {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-retake-photo:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
 @media (max-width: 500px) {
     .otp-action-row {
         flex-direction: column;

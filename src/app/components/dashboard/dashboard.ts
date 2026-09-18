@@ -208,7 +208,8 @@ export class Dashboard implements OnInit, OnDestroy {
           const existing = this.pickupTasks.find(p => (p.request_id && p.request_id === req.request_id) || (p.id && p.id === req.id));
           return {
             ...req,
-            inputOtp: existing ? existing.inputOtp : '',
+            previewImage: existing ? existing.previewImage : null,
+            pickupProofBase64: existing ? existing.pickupProofBase64 : null,
             isSubmitting: false
           };
         });
@@ -225,7 +226,8 @@ export class Dashboard implements OnInit, OnDestroy {
           const existing = this.pickupTasks.find(p => (p.request_id && p.request_id === req.request_id) || (p.id && p.id === req.id));
           return {
             ...req,
-            inputOtp: existing ? existing.inputOtp : '',
+            previewImage: existing ? existing.previewImage : null,
+            pickupProofBase64: existing ? existing.pickupProofBase64 : null,
             isSubmitting: existing ? existing.isSubmitting : false
           };
         });
@@ -234,10 +236,41 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
+  onCaptureProof(event: any, task: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      Swal.fire('Invalid File', 'Please select or capture a valid image file.', 'warning');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      task.previewImage = e.target.result;
+      task.pickupProofBase64 = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeProofImage(task: any) {
+    task.previewImage = null;
+    task.pickupProofBase64 = null;
+  }
+
   completePickup(task: any) {
+    if (!task.pickupProofBase64) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Product Photo Required 📷',
+        text: 'Please take or upload a photo of the product at the doorstep before confirming pickup.'
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Confirm Item Pickup? 📦',
-      text: `Have you inspected and collected "${task.product_name || 'return product'}" from customer?`,
+      text: `Have you verified the item "${task.product_name || 'return product'}" and captured the proof photo?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
@@ -247,24 +280,36 @@ export class Dashboard implements OnInit, OnDestroy {
     }).then((result) => {
       if (result.isConfirmed) {
         task.isSubmitting = true;
-        this.deliveryService.completeReversePickup(task.request_id).subscribe({
+        this.deliveryService.completeReversePickup(task.request_id, task.pickupProofBase64).subscribe({
           next: (res) => {
             task.isSubmitting = false;
+            // Instantly remove task from view to prevent re-clicks
+            this.pickupTasks = this.pickupTasks.filter(p => p.request_id !== task.request_id);
             Swal.fire({
               icon: 'success',
               title: 'Pickup Completed! 📦',
-              text: res.message || 'Defective item collected and verified successfully.',
+              text: res.message || 'Defective item collected and proof recorded successfully.',
               confirmButtonColor: '#16a34a'
             });
             this.loadAllData();
           },
           error: (err) => {
             task.isSubmitting = false;
-            Swal.fire({
-              icon: 'error',
-              title: 'Pickup Failed',
-              text: err.error?.message || 'Unable to complete pickup. Please try again.'
-            });
+            if (err.error?.alreadyCompleted) {
+              this.pickupTasks = this.pickupTasks.filter(p => p.request_id !== task.request_id);
+              Swal.fire({
+                icon: 'info',
+                title: 'Already Picked Up',
+                text: err.error.message || 'This item has already been marked as picked up.'
+              });
+              this.loadAllData();
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Pickup Failed',
+                text: err.error?.message || 'Unable to complete pickup. Please try again.'
+              });
+            }
           }
         });
       }

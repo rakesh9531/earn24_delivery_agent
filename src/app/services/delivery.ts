@@ -98,9 +98,10 @@ export class DeliveryService {
     return this.http.get(`${this.apiUrl}/delivery-app/pickup-tasks`, this.getHeaders());
   }
 
-  completeReversePickup(requestId: number, notes: string = ''): Observable<any> {
+  completeReversePickup(requestId: number, proofImageBase64?: string, notes: string = ''): Observable<any> {
     return this.http.post(`${this.apiUrl}/delivery-app/complete-pickup`, { 
       requestId, 
+      pickupProofBase64: proofImageBase64 || null,
       qc_status: 'PASSED', 
       qc_remarks: notes || 'Item inspected and collected at doorstep' 
     }, this.getHeaders());
