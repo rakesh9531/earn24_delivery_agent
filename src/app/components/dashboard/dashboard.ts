@@ -235,29 +235,37 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   completePickup(task: any) {
-    const cleanOtp = (task.inputOtp || '').trim();
-    if (!cleanOtp || cleanOtp.length !== 6) {
-      Swal.fire('Required', 'Please enter a valid 6-digit Customer Pickup OTP.', 'warning');
-      return;
-    }
-    task.isSubmitting = true;
-    this.deliveryService.completeReversePickup(task.request_id, cleanOtp).subscribe({
-      next: (res) => {
-        task.isSubmitting = false;
-        Swal.fire({
-          icon: 'success',
-          title: 'Pickup Completed! 📦',
-          text: res.message || 'Defective item collected and return verified successfully.',
-          confirmButtonColor: '#16a34a'
-        });
-        this.loadAllData();
-      },
-      error: (err) => {
-        task.isSubmitting = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Verification Failed',
-          text: err.error?.message || 'Invalid Pickup OTP. Please ask customer to re-verify.'
+    Swal.fire({
+      title: 'Confirm Item Pickup? 📦',
+      text: `Have you inspected and collected "${task.product_name || 'return product'}" from customer?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, Confirm Pickup',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        task.isSubmitting = true;
+        this.deliveryService.completeReversePickup(task.request_id).subscribe({
+          next: (res) => {
+            task.isSubmitting = false;
+            Swal.fire({
+              icon: 'success',
+              title: 'Pickup Completed! 📦',
+              text: res.message || 'Defective item collected and verified successfully.',
+              confirmButtonColor: '#16a34a'
+            });
+            this.loadAllData();
+          },
+          error: (err) => {
+            task.isSubmitting = false;
+            Swal.fire({
+              icon: 'error',
+              title: 'Pickup Failed',
+              text: err.error?.message || 'Unable to complete pickup. Please try again.'
+            });
+          }
         });
       }
     });

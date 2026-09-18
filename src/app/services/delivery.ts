@@ -98,8 +98,12 @@ export class DeliveryService {
     return this.http.get(`${this.apiUrl}/delivery-app/pickup-tasks`, this.getHeaders());
   }
 
-  completeReversePickup(requestId: number, otp: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/delivery-app/complete-pickup`, { requestId, otp }, this.getHeaders());
+  completeReversePickup(requestId: number, notes: string = ''): Observable<any> {
+    return this.http.post(`${this.apiUrl}/delivery-app/complete-pickup`, { 
+      requestId, 
+      qc_status: 'PASSED', 
+      qc_remarks: notes || 'Item inspected and collected at doorstep' 
+    }, this.getHeaders());
   }
 
   completeReplacementDelivery(requestId: number, otp: string): Observable<any> {

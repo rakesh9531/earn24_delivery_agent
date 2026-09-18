@@ -316,32 +316,21 @@
         <div class="card-footer" style="padding: 0 16px 16px; background: transparent; border: none;">
           <div class="verification-panel pickup-verification-panel">
             <div class="handshake-header pickup-handshake-header">
-              <i class="bi bi-shield-check"></i> VERIFY PICKUP OTP WITH CUSTOMER
+              <i class="bi bi-box-seam"></i> DOORSTEP PHYSICAL INSPECTION & COLLECTION
             </div>
             <p class="verification-hint">
-              Ask customer for the <strong>6-digit Pickup OTP</strong> shown on their Earn24 app order screen to collect item.
+              Inspect the item condition and packaging. Click below to confirm pickup and collect the return item.
             </p>
-            <div class="otp-action-row">
-              <input 
-                type="text" 
-                inputmode="numeric" 
-                pattern="[0-9]*" 
-                [(ngModel)]="task.inputOtp" 
-                maxlength="6" 
-                class="otp-input-box" 
-                placeholder="------" 
-              />
-              <button 
-                type="button"
-                (click)="completePickup(task)" 
-                class="btn-verify-only" 
-                [disabled]="!task.inputOtp || task.inputOtp.length < 6 || task.isSubmitting"
-              >
-                <i class="bi bi-box-seam me-1" *ngIf="!task.isSubmitting"></i>
-                <i class="bi bi-arrow-repeat spin-icon me-1" *ngIf="task.isSubmitting"></i>
-                <span>{{ task.isSubmitting ? 'VERIFYING...' : 'VERIFY OTP & COLLECT ITEM' }}</span>
-              </button>
-            </div>
+            <button 
+              type="button"
+              (click)="completePickup(task)" 
+              class="btn-complete-pickup" 
+              [disabled]="task.isSubmitting"
+            >
+              <i class="bi bi-check-circle-fill fs-5" *ngIf="!task.isSubmitting"></i>
+              <i class="bi bi-arrow-repeat spin-icon fs-5" *ngIf="task.isSubmitting"></i>
+              <span>{{ task.isSubmitting ? 'COLLECTING ITEM...' : 'CONFIRM & COLLECT RETURN ITEM' }}</span>
+            </button>
           </div>
         </div>
       </div>
