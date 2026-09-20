@@ -114,4 +114,12 @@ export class DeliveryService {
   getOrderPaymentStatus(orderId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/delivery-app/orders/${orderId}/payment-status`);
   }
+
+  getSettlementOverview(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delivery-app/settlements/overview`, this.getHeaders());
+  }
+
+  requestSettlement(orderIds?: number[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/delivery-app/settlements/request`, { orderIds }, this.getHeaders());
+  }
 }
