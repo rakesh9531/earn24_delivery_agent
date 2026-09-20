@@ -1,68 +1,152 @@
 <div class="earnings-page">
   <div class="header-section">
-    <h1>Financial Overview</h1>
-    <p>Track your collections and performance</p>
+    <h1>Settlement History</h1>
+    <p>Manage your COD doorstep collections and settlement requests</p>
   </div>
 
-  <!-- Life-time & Monthly Grid -->
-  <div class="summary-grid">
-    <div class="main-card primary-card">
-        <small>UNSETTLED CASH HAND</small>
-        <h2>₹{{ summary.lifetime.total_cash_lifetime || 0 | number:'1.0-0' }}</h2>
-        <div class="card-tag">LIFETIME CASH</div>
-    </div>
-
-    <div class="mini-stats">
-        <div class="mini-card online">
-            <i class="bi bi-qr-code"></i>
-            <div>
-                <small>Online Lifetime</small>
-                <strong>₹{{ summary.lifetime.total_online_lifetime || 0 | number:'1.0-0' }}</strong>
-            </div>
-        </div>
-        <div class="mini-card active-month">
-            <i class="bi bi-calendar-check"></i>
-            <div>
-                <small>This Month ({{ summary.thisMonth.count || 0 }})</small>
-                <strong>₹{{ summary.thisMonth.amount || 0 | number:'1.0-0' }}</strong>
-            </div>
-        </div>
-    </div>
-  </div>
-
-  <div class="list-title">
-      <span>Daily Transaction Log</span>
-      <div class="line"></div>
-  </div>
-
-  <!-- Loading -->
-  <div *ngIf="isLoading" class="loader-ui"><div class="spin"></div></div>
-
-  <!-- Daily List -->
-  <div class="log-list" *ngIf="!isLoading">
-    <div *ngFor="let day of dailyStats" class="log-item">
-      <div class="log-date">
-        <span class="m">{{ day.date | date:'MMM' }}</span>
-        <span class="d">{{ day.date | date:'dd' }}</span>
+  <!-- 3 Top Collection Summary Cards (Matches Client Diagram) -->
+  <div class="summary-cards-container">
+    <div class="collection-card cash-card">
+      <div class="card-top">
+        <span class="card-title">Cash Collection</span>
+        <i class="bi bi-cash-stack"></i>
       </div>
-      
-      <div class="log-content">
-        <div class="log-top">
-            <strong>{{ day.total_deliveries }} Successful Trips</strong>
-            <span class="day-full">{{ day.date | date:'EEEE' }}</span>
-        </div>
-        <div class="log-bottom">
-            <div class="val cash"><i class="bi bi-wallet2"></i> Cash: ₹{{ day.cash_collected }}</div>
-            <div class="val online"><i class="bi bi-phone"></i> Online: ₹{{ day.online_collected }}</div>
-        </div>
-      </div>
+      <div class="card-amount">₹{{ summary.cash_collection | number:'1.2-2' }}</div>
+      <small class="card-subtitle">Cash in hand</small>
     </div>
 
-    <!-- Pagination -->
-    <div class="pagination" *ngIf="totalPages > 1">
-        <button (click)="prevPage()" [disabled]="currentPage === 1"><i class="bi bi-arrow-left"></i></button>
-        <span>Page {{ currentPage }} / {{ totalPages }}</span>
-        <button (click)="nextPage()" [disabled]="currentPage === totalPages"><i class="bi bi-arrow-right"></i></button>
+    <div class="collection-card online-card">
+      <div class="card-top">
+        <span class="card-title">Online Collection</span>
+        <i class="bi bi-qr-code"></i>
+      </div>
+      <div class="card-amount">₹{{ summary.online_collection | number:'1.2-2' }}</div>
+      <small class="card-subtitle">Doorstep UPI / QR</small>
+    </div>
+
+    <div class="collection-card total-card">
+      <div class="card-top">
+        <span class="card-title">Total</span>
+        <i class="bi bi-wallet2"></i>
+      </div>
+      <div class="card-amount">₹{{ summary.total_collection | number:'1.2-2' }}</div>
+      <small class="card-subtitle">Due to Admin</small>
+    </div>
+  </div>
+
+  <!-- Tab Switcher -->
+  <div class="settlement-tabs">
+    <button type="button" class="tab-btn" [class.active]="activeTab === 'PENDING'" (click)="setTab('PENDING')">
+      <i class="bi bi-hourglass-split"></i>
+      Settlement Pending ({{ summary.pending_count }})
+    </button>
+    <button type="button" class="tab-btn" [class.active]="activeTab === 'DONE'" (click)="setTab('DONE')">
+      <i class="bi bi-check2-circle"></i>
+      Settlement Done ({{ summary.settled_count }})
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loader-ui">
+    <div class="spin"></div>
+    <p>Loading settlements...</p>
+  </div>
+
+  <!-- TAB 1: SETTLEMENT PENDING -->
+  <div *ngIf="!isLoading && activeTab === 'PENDING'" class="tab-content">
+    <!-- Quick Action: Settle All -->
+    <div *ngIf="pendingOrders.length > 0" class="bulk-action-bar">
+      <span>Total Unsettled: <strong>₹{{ summary.total_collection | number:'1.2-2' }}</strong></span>
+      <button type="button" class="btn-settle-all" [disabled]="isSubmitting" (click)="onRequestSettlement()">
+        <i class="bi bi-send-check"></i> Request All Settlement
+      </button>
+    </div>
+
+    <div *ngIf="pendingOrders.length === 0" class="empty-state">
+      <i class="bi bi-check-circle-fill text-success"></i>
+      <h3>All Settled!</h3>
+      <p>You have no pending COD payments to settle with Admin.</p>
+    </div>
+
+    <div *ngFor="let order of pendingOrders" class="order-settle-card">
+      <div class="order-card-header">
+        <div>
+          <span class="order-num">#{{ order.order_number }}</span>
+          <span *ngIf="order.delivery_payment_mode === 'ONLINE' || order.payment_method === 'ONLINE'" class="mode-badge online">ONLINE QR</span>
+          <span *ngIf="order.delivery_payment_mode !== 'ONLINE' && order.payment_method !== 'ONLINE'" class="mode-badge cash">CASH</span>
+        </div>
+        <div class="order-amount">₹{{ (order.delivery_amount_collected || order.total_amount) | number:'1.2-2' }}</div>
+      </div>
+
+      <div class="order-card-body">
+        <div class="info-row">
+          <i class="bi bi-person"></i>
+          <span>{{ order.customer_name }} ({{ order.customer_phone }})</span>
+        </div>
+        <div class="info-row" *ngIf="order.delivery_address">
+          <i class="bi bi-geo-alt"></i>
+          <span class="address-text">{{ order.delivery_address }}</span>
+        </div>
+        <div class="info-row">
+          <i class="bi bi-clock"></i>
+          <span>Delivered: {{ order.delivered_at | date:'dd MMM yyyy, h:mm a' }}</span>
+        </div>
+      </div>
+
+      <div class="order-card-footer">
+        <div *ngIf="order.is_settlement_requested === 1" class="requested-status">
+          <i class="bi bi-clock-history"></i>
+          <span>Request Sent (Pending Admin Approval)</span>
+        </div>
+        <button *ngIf="order.is_settlement_requested !== 1" 
+                type="button" 
+                class="btn-settle-single" 
+                [disabled]="isSubmitting" 
+                (click)="onRequestSettlement(order)">
+          <i class="bi bi-send"></i> Settle Request
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: SETTLEMENT DONE -->
+  <div *ngIf="!isLoading && activeTab === 'DONE'" class="tab-content">
+    <div *ngIf="settledOrders.length === 0" class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h3>No Settlement History Yet</h3>
+      <p>Orders verified and accepted by Admin will appear here.</p>
+    </div>
+
+    <div *ngFor="let order of settledOrders" class="order-settle-card done-card">
+      <div class="order-card-header">
+        <div>
+          <span class="order-num">#{{ order.order_number }}</span>
+          <span *ngIf="order.delivery_payment_mode === 'ONLINE' || order.payment_method === 'ONLINE'" class="mode-badge online">ONLINE QR</span>
+          <span *ngIf="order.delivery_payment_mode !== 'ONLINE' && order.payment_method !== 'ONLINE'" class="mode-badge cash">CASH</span>
+        </div>
+        <div class="order-amount text-success">₹{{ (order.delivery_amount_collected || order.total_amount) | number:'1.2-2' }}</div>
+      </div>
+
+      <div class="order-card-body">
+        <div class="info-row" *ngIf="order.customer_name">
+          <i class="bi bi-person"></i>
+          <span>{{ order.customer_name }}</span>
+        </div>
+        <div class="info-row">
+          <i class="bi bi-check2-all text-success"></i>
+          <span>Settled On: <strong>{{ order.cash_settled_at | date:'dd MMM yyyy, h:mm a' }}</strong></span>
+        </div>
+        <div class="info-row" *ngIf="order.settled_by_admin_name">
+          <i class="bi bi-shield-check"></i>
+          <span>Verified by: {{ order.settled_by_admin_name }}</span>
+        </div>
+      </div>
+
+      <div class="order-card-footer done-footer">
+        <span class="badge-done">
+          <i class="bi bi-patch-check-fill"></i> DONE
+        </span>
+      </div>
     </div>
   </div>
 </div>
