@@ -76,12 +76,10 @@
                 <i class="bi bi-x-octagon-fill" *ngIf="item.order_status === 'CANCELLED'"></i>
                 {{ item.order_status }}
             </div>
-            <div class="verified-label" *ngIf="item.order_status === 'DELIVERED'">
-                <i class="bi bi-shield-lock"></i> OTP Verified
-            </div>
-            <div class="cancelled-label" *ngIf="item.order_status === 'CANCELLED'">
-                <i class="bi bi-exclamation-circle-fill"></i> Admin Cancelled
-            </div>
+            
+            <button type="button" class="btn-view-journey" (click)="openJourneyModal(item)">
+                <i class="bi bi-diagram-3-fill"></i> View Details
+            </button>
         </div>
       </div>
     </div>
@@ -100,5 +98,118 @@
     <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="nav-btn">
       Next <i class="bi bi-arrow-right-short"></i>
     </button>
+  </div>
+
+  <!-- MODAL: ORDER FULL LIFECYCLE & JOURNEY STATUS (Forward, Return, Replacement) -->
+  <div class="journey-modal-backdrop" *ngIf="selectedJourney" (click)="closeJourneyModal()">
+    <div class="journey-modal-container" (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="journey-modal-header">
+        <div class="header-left">
+          <div class="order-id-badge">
+            <i class="bi bi-box-seam"></i> #{{ selectedJourney.order?.order_number || selectedJourney.order?.id }}
+          </div>
+          <span class="journey-type-pill" [ngClass]="selectedJourney.journeyType?.toLowerCase()">
+            {{ selectedJourney.journeyType === 'REPLACEMENT' ? '🔄 REPLACEMENT FLOW' : (selectedJourney.journeyType === 'RETURN' ? '⚠️ RETURN FLOW' : '🛵 FORWARD DELIVERY') }}
+          </span>
+        </div>
+        <button class="btn-close-modal" (click)="closeJourneyModal()">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="journey-modal-body">
+        
+        <!-- Loading State -->
+        <div *ngIf="isJourneyLoading" class="modal-loading-box">
+          <div class="custom-spinner"></div>
+          <p>Loading complete order lifecycle and tracking...</p>
+        </div>
+
+        <div *ngIf="!isJourneyLoading">
+
+          <!-- Customer & Location Card -->
+          <div class="summary-mini-card">
+            <div class="mini-row">
+              <span class="label"><i class="bi bi-person-fill"></i> Customer:</span>
+              <strong class="val">{{ selectedJourney.order?.customer_name }}</strong>
+            </div>
+            <div class="mini-row" *ngIf="selectedJourney.order?.customer_phone">
+              <span class="label"><i class="bi bi-telephone-fill"></i> Phone:</span>
+              <span class="val">{{ selectedJourney.order?.customer_phone }}</span>
+            </div>
+            <div class="mini-row" *ngIf="selectedJourney.order?.delivery_address">
+              <span class="label"><i class="bi bi-geo-alt-fill"></i> Address:</span>
+              <span class="val address-val">{{ selectedJourney.order?.delivery_address }}</span>
+            </div>
+            <div class="mini-row">
+              <span class="label"><i class="bi bi-wallet2"></i> Total:</span>
+              <strong class="val text-success">₹{{ selectedJourney.order?.total_amount }} ({{ selectedJourney.order?.payment_method }})</strong>
+            </div>
+          </div>
+
+          <!-- Items Ordered Mini List -->
+          <div class="journey-items-card" *ngIf="selectedJourney.items?.length > 0">
+            <h6><i class="bi bi-bag-check-fill"></i> Items in this Order ({{ selectedJourney.items.length }})</h6>
+            <div class="item-chip" *ngFor="let it of selectedJourney.items">
+              <img [src]="it.main_image_url || 'assets/images/placeholder.png'" class="chip-img" (error)="it.main_image_url = 'assets/images/placeholder.png'" />
+              <div class="chip-info">
+                <strong class="chip-title">{{ it.product_name }}</strong>
+                <div class="chip-meta">
+                  Qty: {{ it.quantity }} • ₹{{ it.total_price }}
+                  <span class="chip-loc"><i class="bi bi-building"></i> {{ it.pickup_location_name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vertical Timeline Stepper -->
+          <div class="flow-timeline-section">
+            <h6><i class="bi bi-diagram-3-fill"></i> Order Journey & Status Flow</h6>
+            
+            <div class="vertical-timeline">
+              <div class="timeline-node" *ngFor="let step of selectedJourney.milestones; let isLast = last" [class.completed]="step.status === 'COMPLETED'">
+                
+                <!-- Icon Circle -->
+                <div class="node-circle" [ngClass]="{'node-done': step.status === 'COMPLETED', 'node-wait': step.status !== 'COMPLETED'}">
+                  <i class="bi" [ngClass]="step.icon || (step.status === 'COMPLETED' ? 'bi-check-lg' : 'bi-hourglass-split')"></i>
+                </div>
+
+                <!-- Vertical Connector Line -->
+                <div class="node-connector" *ngIf="!isLast" [class.connector-done]="step.status === 'COMPLETED'"></div>
+
+                <!-- Node Content -->
+                <div class="node-content">
+                  <div class="node-top">
+                    <span class="node-badge" [ngClass]="{'badge-green': step.status === 'COMPLETED', 'badge-gray': step.status !== 'COMPLETED'}">
+                      {{ step.badge }}
+                    </span>
+                    <span class="node-time" *ngIf="step.timestamp">
+                      <i class="bi bi-calendar-check"></i> {{ step.timestamp | date:'dd MMM yyyy, h:mm a' }}
+                    </span>
+                    <span class="node-time pending-time" *ngIf="!step.timestamp">
+                      <i class="bi bi-clock-history"></i> Pending
+                    </span>
+                  </div>
+
+                  <h5 class="node-title">{{ step.title }}</h5>
+                  <p class="node-desc">{{ step.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="journey-modal-footer">
+        <button class="btn-close-bottom" (click)="closeJourneyModal()">
+          Close
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>

@@ -59,4 +59,30 @@ export class History implements OnInit {
       this.loadHistory(this.currentPage - 1);
     }
   }
+
+  // Journey Details Modal State
+  selectedJourney: any = null;
+  isJourneyLoading = false;
+
+  openJourneyModal(item: any): void {
+    this.selectedJourney = { order: item, milestones: [], isLoading: true };
+    this.isJourneyLoading = true;
+    this.deliveryService.getOrderJourneyDetails(item.id || item.order_number).subscribe({
+      next: (res) => {
+        this.isJourneyLoading = false;
+        if (res.status) {
+          this.selectedJourney = res;
+        }
+      },
+      error: (err) => {
+        console.error("Failed to load journey:", err);
+        this.isJourneyLoading = false;
+      }
+    });
+  }
+
+  closeJourneyModal(): void {
+    this.selectedJourney = null;
+    this.isJourneyLoading = false;
+  }
 }
