@@ -58,6 +58,22 @@ export class DeliveryService {
     return this.http.get(`${this.apiUrl}/delivery-app/stats`, this.getHeaders());
   }
 
+  acceptAssignment(orderId: number): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/delivery-app/accept-assignment`,
+      { orderId },
+      this.getHeaders(),
+    );
+  }
+
+  rejectAssignment(orderId: number, reason: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/delivery-app/reject-assignment`,
+      { orderId, reason },
+      this.getHeaders(),
+    );
+  }
+
   cancelAssignment(orderId: number, reason: string): Observable<any> {
     return this.http.post(
       `${this.apiUrl}/delivery-app/cancel-assignment`,

@@ -55,8 +55,82 @@
       <div class="card-header">
         <div class="order-identity">
           <span class="id-tag">ORDER #{{ order.order_number }}</span>
+          <span class="new-assigned-badge" *ngIf="order.assignment_status === 'PENDING_ACCEPTANCE'">NEW ASSIGNMENT</span>
         </div>
         <span class="status-badge" [ngClass]="order.order_status">{{ order.order_status }}</span>
+      </div>
+
+      <!-- PENDING ASSIGNMENT INVITATION BANNER -->
+      <div class="assignment-pending-banner" *ngIf="order.assignment_status === 'PENDING_ACCEPTANCE'">
+        <div class="assignment-badge-row">
+          <span class="badge-new-task"><i class="bi bi-bell-fill"></i> NEW TASK ASSIGNED</span>
+          <span class="assignment-timer-tag">Action Required</span>
+        </div>
+        <p class="assignment-desc">
+          You have been assigned this delivery order. Please review customer location & items below, then Accept or Reject.
+        </p>
+        <div class="assignment-action-btns">
+          <button type="button" class="btn-task-reject" (click)="rejectTask(order)" [disabled]="order.isRejecting">
+            <i class="bi bi-x-circle me-1"></i> {{ order.isRejecting ? 'Rejecting...' : 'REJECT TASK' }}
+          </button>
+          <button type="button" class="btn-task-accept" (click)="acceptTask(order)" [disabled]="order.isAccepting">
+            <i class="bi bi-check-circle-fill me-1"></i> {{ order.isAccepting ? 'Accepting...' : 'ACCEPT TASK' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- WAREHOUSE / STORE PICKUP HANDSHAKE CARD -->
+      <div class="warehouse-pickup-card" *ngIf="order.assignment_status === 'ACCEPTED'">
+        <div class="warehouse-card-header">
+          <div class="warehouse-title-block">
+            <i class="bi bi-building-check text-primary fs-5"></i>
+            <div>
+              <h4 class="warehouse-title">WAREHOUSE / STORE PICKUP</h4>
+              <small class="warehouse-subtitle">Show Pickup OTP at counter to collect parcel</small>
+            </div>
+          </div>
+          <span class="pickup-status-pill" [ngClass]="{'status-verified': order.all_picked_up || order.pickup_status === 'PICKED_UP', 'status-pending': !order.all_picked_up && order.pickup_status !== 'PICKED_UP'}">
+            <i class="bi" [ngClass]="{'bi-check-circle-fill': order.all_picked_up || order.pickup_status === 'PICKED_UP', 'bi-hourglass-split': !order.all_picked_up && order.pickup_status !== 'PICKED_UP'}"></i>
+            {{ (order.all_picked_up || order.pickup_status === 'PICKED_UP') ? 'HANDOVER VERIFIED' : 'AWAITING PICKUP' }}
+          </span>
+        </div>
+
+        <!-- Multi-location / Pickup point breakdown -->
+        <div class="pickup-locations-list" *ngIf="order.pickup_locations && order.pickup_locations.length > 0">
+          <div *ngFor="let loc of order.pickup_locations" class="pickup-loc-item">
+            <div class="loc-details">
+              <div class="loc-name"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ loc.location_name }}</div>
+              <div class="loc-addr">{{ loc.address }}</div>
+              <div class="loc-contact" *ngIf="loc.phone && loc.phone !== 'N/A'">
+                <i class="bi bi-telephone-fill me-1"></i>{{ loc.phone }}
+                <a [href]="'tel:' + loc.phone" class="loc-call-btn">CALL</a>
+              </div>
+            </div>
+            <div class="loc-otp-box">
+              <small class="otp-label-small">PICKUP OTP</small>
+              <span class="otp-number">{{ loc.pickup_otp || order.pickup_otp }}</span>
+              <span class="loc-tag" [ngClass]="loc.pickup_status === 'PICKED_UP' ? 'tag-done' : 'tag-wait'">
+                {{ loc.pickup_status === 'PICKED_UP' ? 'COLLECTED ✅' : 'PENDING' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fallback Single OTP Card -->
+        <div class="single-pickup-handshake" *ngIf="(!order.pickup_locations || order.pickup_locations.length === 0) && order.pickup_otp">
+          <div class="otp-display-box">
+            <small class="otp-label">YOUR WAREHOUSE PICKUP OTP</small>
+            <div class="otp-digits">{{ order.pickup_otp }}</div>
+            <p class="otp-instruction">
+              Give this 4-digit code to Warehouse / Store Admin when collecting items.
+            </p>
+          </div>
+        </div>
+
+        <div *ngIf="order.all_picked_up || order.pickup_status === 'PICKED_UP'" class="pickup-success-notice">
+          <i class="bi bi-shield-check text-success fs-5"></i>
+          <span>Parcel successfully received from warehouse. You can now start the delivery trip!</span>
+        </div>
       </div>
 
       <!-- Card Body: Customer & Pickup -->
@@ -143,8 +217,10 @@
                 <strong *ngIf="order.is_paid !== 1">₹{{ order.total_amount }}</strong>
             </div>
             <div class="button-group">
-                <button (click)="cancelOrder(order)" class="btn-cancel">REJECT</button>
-                <button (click)="startOrder(order)" class="btn-start-trip">START TRIP</button>
+                <button (click)="rejectTask(order)" class="btn-cancel">REJECT</button>
+                <button (click)="startOrder(order)" class="btn-start-trip" [disabled]="!order.all_picked_up && order.pickup_status !== 'PICKED_UP'" [title]="(!order.all_picked_up && order.pickup_status !== 'PICKED_UP') ? 'Complete warehouse pickup verification first' : 'Start Delivery Trip'">
+                    <i class="bi bi-bicycle me-1"></i> START TRIP
+                </button>
             </div>
         </div>
 
