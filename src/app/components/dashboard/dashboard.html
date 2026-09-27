@@ -108,9 +108,9 @@
             </div>
             <div class="loc-otp-box">
               <small class="otp-label-small">PICKUP OTP</small>
-              <span class="otp-number">{{ loc.pickup_otp || order.pickup_otp }}</span>
-              <span class="loc-tag" [ngClass]="loc.pickup_status === 'PICKED_UP' ? 'tag-done' : 'tag-wait'">
-                {{ loc.pickup_status === 'PICKED_UP' ? 'COLLECTED ✅' : 'PENDING' }}
+              <span class="otp-number">{{ loc.pickup_otp || order.pickup_otp || '----' }}</span>
+              <span class="loc-tag" [ngClass]="(loc.pickup_status === 'PICKED_UP' || order.pickup_status === 'PICKED_UP') ? 'tag-done' : 'tag-wait'">
+                {{ (loc.pickup_status === 'PICKED_UP' || order.pickup_status === 'PICKED_UP') ? 'COLLECTED ✅' : 'PENDING' }}
               </span>
             </div>
           </div>
@@ -211,6 +211,15 @@
         
         <!-- STEP 1: START TRIP (Visible for Shipped/Confirmed) -->
         <div class="footer-action-row" *ngIf="order.order_status !== 'OUT_FOR_DELIVERY'">
+            <!-- Warning note if pickup is pending -->
+            <div *ngIf="!order.all_picked_up && order.pickup_status !== 'PICKED_UP'" class="pickup-gate-warning">
+                <i class="bi bi-shield-lock-fill text-warning me-2 fs-5"></i>
+                <div>
+                  <strong>Pickup Required Before Starting Trip:</strong>
+                  <p class="mb-0">Pehle warehouse counter par apna <strong>Pickup OTP</strong> verify karwayein, tabhi trip start hogi.</p>
+                </div>
+            </div>
+
             <div class="amount-group">
                 <small>Total Collectable</small>
                 <strong *ngIf="order.is_paid === 1" class="text-success" style="color: #10b981;">₹0.00 (PAID)</strong>
@@ -218,8 +227,9 @@
             </div>
             <div class="button-group">
                 <button (click)="rejectTask(order)" class="btn-cancel">REJECT</button>
-                <button (click)="startOrder(order)" class="btn-start-trip" [disabled]="!order.all_picked_up && order.pickup_status !== 'PICKED_UP'" [title]="(!order.all_picked_up && order.pickup_status !== 'PICKED_UP') ? 'Complete warehouse pickup verification first' : 'Start Delivery Trip'">
-                    <i class="bi bi-bicycle me-1"></i> START TRIP
+                <button (click)="startOrder(order)" class="btn-start-trip" [disabled]="!order.all_picked_up && order.pickup_status !== 'PICKED_UP'" [ngClass]="{'btn-trip-locked': !order.all_picked_up && order.pickup_status !== 'PICKED_UP', 'btn-trip-ready': order.all_picked_up || order.pickup_status === 'PICKED_UP'}">
+                    <i class="bi" [ngClass]="(!order.all_picked_up && order.pickup_status !== 'PICKED_UP') ? 'bi-lock-fill me-1' : 'bi-bicycle me-1'"></i>
+                    {{ (!order.all_picked_up && order.pickup_status !== 'PICKED_UP') ? 'LOCKED (PICKUP FIRST)' : 'START TRIP' }}
                 </button>
             </div>
         </div>
