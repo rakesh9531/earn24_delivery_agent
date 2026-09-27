@@ -173,7 +173,22 @@ export class Dashboard implements OnInit, OnDestroy {
       }
     });
 
-    this.socketSubscriptions.push(orderAssignedSub, orderCancelledSub, pickupAssignedSub, paymentReceivedSub);
+    // 5. Warehouse Pickup Handshake Verified Socket Event
+    const pickupVerifiedSub = this.socketService.onEvent('order_pickup_verified').subscribe({
+      next: (data) => {
+        console.log('Realtime socket event: order_pickup_verified received', data);
+        Swal.fire({
+          icon: 'success',
+          title: 'Warehouse Handshake Verified! 📦✅',
+          text: data.message || 'Items have been verified and handed over. You can now start the delivery trip!',
+          timer: 4000,
+          showConfirmButton: true
+        });
+        this.loadTasksSilent();
+      }
+    });
+
+    this.socketSubscriptions.push(orderAssignedSub, orderCancelledSub, pickupAssignedSub, paymentReceivedSub, pickupVerifiedSub);
   }
 
   startAutoRefresh() {
@@ -393,12 +408,84 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // PHASE 1: Notified Trip Start
   startOrder(order: any) {
+    if (order.assignment_status === 'PENDING_ACCEPTANCE') {
+      Swal.fire('Accept Task First', 'Please accept the assigned task before starting delivery.', 'warning');
+      return;
+    }
+    if (!order.all_picked_up && order.pickup_status !== 'PICKED_UP') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Pickup Handshake Pending 📦',
+        text: 'Please visit the warehouse/merchant and show your Pickup OTP to verify and collect the parcel before starting the delivery trip.'
+      });
+      return;
+    }
+
     this.deliveryService.startDelivery(order.id).subscribe({
       next: () => {
         order.order_status = 'OUT_FOR_DELIVERY';
-        Swal.fire({ icon: 'success', title: 'Trip Started', text: 'On my way!', timer: 1500, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: 'Trip Started', text: 'On my way to customer doorstep!', timer: 1500, showConfirmButton: false });
       },
       error: (err) => this.handleCancellationError(err)
+    });
+  }
+
+  // ACCEPT ASSIGNED TASK
+  acceptTask(order: any) {
+    order.isAccepting = true;
+    this.deliveryService.acceptAssignment(order.id).subscribe({
+      next: (res) => {
+        order.isAccepting = false;
+        order.assignment_status = 'ACCEPTED';
+        Swal.fire({
+          icon: 'success',
+          title: 'Task Accepted! 🚀',
+          text: 'Please visit the warehouse/store to collect the parcel with the Pickup OTP shown.',
+          confirmButtonColor: '#16a34a'
+        });
+        this.loadTasksSilent();
+      },
+      error: (err) => {
+        order.isAccepting = false;
+        Swal.fire('Error', err.error?.message || 'Failed to accept task.', 'error');
+      }
+    });
+  }
+
+  // REJECT ASSIGNED TASK
+  rejectTask(order: any) {
+    Swal.fire({
+      title: 'Reject Assignment?',
+      text: "This order will return to the Admin pool for reassignment.",
+      icon: 'warning',
+      input: 'select',
+      inputOptions: {
+        'Too far from current location': 'Too far from current location',
+        'Vehicle breakdown / issue': 'Vehicle breakdown / issue',
+        'Shift ending / off duty': 'Shift ending / off duty',
+        'Too many active deliveries': 'Too many active deliveries',
+        'Other reason': 'Other reason...'
+      },
+      inputPlaceholder: 'Select rejection reason',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, Reject Task'
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        order.isRejecting = true;
+        this.deliveryService.rejectAssignment(order.id, result.value).subscribe({
+          next: (res) => {
+            order.isRejecting = false;
+            Swal.fire('Returned to Admin', res.message || 'Task rejected successfully.', 'success');
+            this.loadAllData();
+          },
+          error: (err) => {
+            order.isRejecting = false;
+            Swal.fire('Error', err.error?.message || 'Failed to reject task.', 'error');
+          }
+        });
+      }
     });
   }
 
