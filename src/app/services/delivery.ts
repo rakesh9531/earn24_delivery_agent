@@ -138,4 +138,8 @@ export class DeliveryService {
   requestSettlement(orderIds?: number[]): Observable<any> {
     return this.http.post(`${this.apiUrl}/delivery-app/settlements/request`, { orderIds }, this.getHeaders());
   }
+
+  getOrderJourneyDetails(orderId: number | string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delivery-app/orders/${orderId}/journey`, this.getHeaders());
+  }
 }
