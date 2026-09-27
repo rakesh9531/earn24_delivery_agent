@@ -70,6 +70,34 @@
     color: #991b1b;
 }
 
+/* Tracking Timestamps Row */
+.history-tracking-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border: 1px dashed #e2e8f0;
+    border-radius: 8px;
+}
+.track-tag {
+    font-size: 11px;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.track-tag strong {
+    color: #0f172a;
+}
+.track-tag.pickup i {
+    color: #0284c7;
+}
+.track-tag.delivered i {
+    color: #16a34a;
+}
+
 /* Pagination Controls */
 .pagination-bar {
     display: flex; justify-content: space-between; align-items: center;

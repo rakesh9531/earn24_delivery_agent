@@ -54,6 +54,16 @@
           </div>
         </div>
 
+        <!-- Tracking Timestamps (Pickup from Hub & Delivered to Customer) -->
+        <div class="history-tracking-row" *ngIf="item.order_status === 'DELIVERED'">
+          <div class="track-tag pickup" *ngIf="item.picked_up_at">
+            <i class="bi bi-box-seam"></i> Picked: <strong>{{ item.picked_up_at | date:'dd MMM, h:mm a' }}</strong>
+          </div>
+          <div class="track-tag delivered" *ngIf="item.delivered_at">
+            <i class="bi bi-check2-circle"></i> Delivered: <strong>{{ item.delivered_at | date:'dd MMM, h:mm a' }}</strong>
+          </div>
+        </div>
+
         <!-- Cancellation Notice Box -->
         <div *ngIf="item.order_status === 'CANCELLED'" class="cancellation-notice">
           <i class="bi bi-info-circle-fill"></i>

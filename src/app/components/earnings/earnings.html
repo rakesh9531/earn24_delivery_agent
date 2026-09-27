@@ -87,6 +87,10 @@
           <i class="bi bi-geo-alt"></i>
           <span class="address-text">{{ order.delivery_address }}</span>
         </div>
+        <div class="info-row" *ngIf="order.picked_up_at">
+          <i class="bi bi-box-seam text-primary"></i>
+          <span>Picked from Hub: <strong>{{ order.picked_up_at | date:'dd MMM yyyy, h:mm a' }}</strong></span>
+        </div>
         <div class="info-row">
           <i class="bi bi-clock"></i>
           <span>Delivered: {{ order.delivered_at | date:'dd MMM yyyy, h:mm a' }}</span>
@@ -131,6 +135,14 @@
         <div class="info-row" *ngIf="order.customer_name">
           <i class="bi bi-person"></i>
           <span>{{ order.customer_name }}</span>
+        </div>
+        <div class="info-row" *ngIf="order.picked_up_at">
+          <i class="bi bi-box-seam text-primary"></i>
+          <span>Picked from Hub: <strong>{{ order.picked_up_at | date:'dd MMM yyyy, h:mm a' }}</strong></span>
+        </div>
+        <div class="info-row" *ngIf="order.delivered_at">
+          <i class="bi bi-geo-alt-fill text-info"></i>
+          <span>Delivered: <strong>{{ order.delivered_at | date:'dd MMM yyyy, h:mm a' }}</strong></span>
         </div>
         <div class="info-row">
           <i class="bi bi-check2-all text-success"></i>
