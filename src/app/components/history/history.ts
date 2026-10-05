@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { DeliveryService } from '../../services/delivery';
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './history.html',
   styleUrl: './history.css'
 })
@@ -14,6 +15,9 @@ export class History implements OnInit {
   // Data Properties
   history: any[] = [];
   isLoading = true;
+
+  // Search
+  searchQuery = '';
 
   // Pagination Properties
   currentPage = 1;
@@ -28,7 +32,7 @@ export class History implements OnInit {
 
   loadHistory(page: number) {
     this.isLoading = true;
-    this.deliveryService.getHistory(page).subscribe({
+    this.deliveryService.getHistory(page, this.searchQuery).subscribe({
       next: (res) => {
         if (res.status) {
           this.history = res.data || [];
@@ -46,6 +50,17 @@ export class History implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  onSearch(): void {
+    this.currentPage = 1;
+    this.loadHistory(1);
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.currentPage = 1;
+    this.loadHistory(1);
   }
 
   nextPage() {

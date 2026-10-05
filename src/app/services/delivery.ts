@@ -98,8 +98,9 @@ export class DeliveryService {
     );
   }
 
-  getHistory(page: number = 1): Observable<any> {
-    return this.http.get(`${this.apiUrl}/delivery-app/history?page=${page}`, this.getHeaders());
+  getHistory(page: number = 1, search: string = ''): Observable<any> {
+    const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+    return this.http.get(`${this.apiUrl}/delivery-app/history?page=${page}${searchParam}`, this.getHeaders());
   }
 
   getEarningsDetails(page: number = 1): Observable<any> {
