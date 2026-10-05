@@ -18,6 +18,64 @@
     display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 12px;
 }
 
+/* Search Bar */
+.search-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 5px 20px 5px;
+}
+.search-input-box {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    padding: 0 12px;
+}
+.search-input-box .search-icon {
+    font-size: 15px;
+    color: #9ca3af;
+    margin-right: 8px;
+}
+.search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 0;
+    font-size: 14px;
+    color: #111827;
+    background: transparent;
+}
+.btn-clear-search {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+}
+.btn-search {
+    background: #0CA201;
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(12, 162, 1, 0.25);
+    transition: background 0.2s;
+}
+.btn-search:active {
+    background: #098001;
+}
+
 /* Timeline Cards */
 .history-list { display: flex; flex-direction: column; gap: 15px; }
 .history-card {

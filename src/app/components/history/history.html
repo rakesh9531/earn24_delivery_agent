@@ -11,6 +11,26 @@
     </div>
   </div>
 
+  <!-- Search Bar -->
+  <div class="search-bar-wrap">
+    <div class="search-input-box">
+      <i class="bi bi-search search-icon"></i>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (keyup.enter)="onSearch()" 
+        placeholder="Search by Order # or Customer..." 
+        class="search-input"
+      />
+      <button *ngIf="searchQuery" type="button" class="btn-clear-search" (click)="clearSearch()">
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
+    </div>
+    <button type="button" class="btn-search" (click)="onSearch()">
+      Search
+    </button>
+  </div>
+
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loader-state">
     <div class="custom-spinner"></div>
